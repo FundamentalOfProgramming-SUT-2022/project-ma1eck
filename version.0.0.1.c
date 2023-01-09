@@ -46,7 +46,7 @@ void create_folder(char * address)
         temp_address[end] = '\0';
     }
     free(temp_address);
-}
+}create_folder("root/folder1/f/f/f");
 
 void * read_file(char * address) // this is a valid address , return a string that shows what's in the file
 {
