@@ -16,32 +16,37 @@ void create_file(char * address)// directories exist
 //create_file("root/test.txt");
 void create_folder(char * address)
 {
-    int end = 0 , start = 0;
+    int end = 0 ;
+    char * temp_address = (char*) malloc(10000*sizeof(char));
 
     while(address[end]!='/'&&address[end]!='\0')
-    {   end++;
-    }
-    printf("%lld ",sizeof(address));
-    char ch = address[end];
-    address[end] = '\0';
-    printf("%d",end);
-
-    while (mkdir(address ) ==  -1)
     {
-
-        address[end] = ch;
-        if (ch=='\0')
-        {   break;  }
-        start = end;
-
-        while(address[end]!='/'&&address[end]!='\0')
-        {   end++;
-           // printf("%d ",address[end]);
-        }
-        char ch = address[end];
-        address[end] = '\0';
+        temp_address[end] = address[end];
+        end++;
     }
-} // not working
+
+    temp_address[end] = '\0';
+
+
+    while (mkdir(temp_address ) ==  -1 || address[end]!='\0')
+    {
+        temp_address[end] = address[end];
+        if(address[end]=='\0')
+        {
+            free(temp_address);
+            return;
+        }
+        end++;
+        while(address[end]!='/'&&address[end]!='\0')
+        {
+
+            temp_address[end] = address[end];
+            end++;
+        }
+        temp_address[end] = '\0';
+    }
+    free(temp_address);
+}
 
 void * read_file(char * address) // this is a valid address , return a string that shows what's in the file
 {
@@ -65,8 +70,8 @@ void * read_file(char * address) // this is a valid address , return a string th
 
 int main()
 {
-    printf("%s",read_file("./root/test.txt"));
 
+    create_folder("root/folder1/f/f/f");
     return 0;
 }
 
