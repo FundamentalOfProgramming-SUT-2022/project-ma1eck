@@ -46,12 +46,12 @@ void create_folder(char * address)
         temp_address[end] = '\0';
     }
     free(temp_address);
-}create_folder("root/folder1/f/f/f");
+}//create_folder("root/folder1/f/f/f");
 
 void * read_file(char * address) // this is a valid address , return a string that shows what's in the file
 {
     char ch;
-    char* result = (char*) malloc(10000*sizeof(char));  // 10000 is max number of characters
+    char* result = (char*) malloc(1000000*sizeof(char));  // 10000 is max number of characters
     FILE * file = fopen(address,"r");
     int i=0;
     do {
@@ -59,19 +59,64 @@ void * read_file(char * address) // this is a valid address , return a string th
         result[i] = ch;
         i++;
     } while (ch != EOF);
-
     fclose(file);
     return result;
 
 }// printf("%s",read_file("./root/test.txt"));
+void insert(char * address,int line_number , int start_pos,char * inserting_str)
+{
 
+    FILE * file1 = fopen(address,"r");
+    FILE * file2 = fopen("./temp/temp_insert.txt","w");
+    char ch;
+    int line=1 ;
+    int is_inserted = 0;
+    while ((ch=fgetc(file1)) != EOF)
+    {
+        if(line == line_number && is_inserted == 0)
+        {
+            for(int pos =0 ; pos< start_pos ; pos++)
+            {
+                fprintf(file2,"%c",ch);
+                ch = fgetc(file1);
+            }
+            fprintf(file2,"%s",inserting_str);
+            is_inserted =1 ;
+        }
+        if(ch=='\n')
+        {
+            line++;
+        }
+        fprintf(file2,"%c",ch);
+    }
+    if(is_inserted == 0)
+    {
+
+        if(line<line_number)
+        {
+            fprintf(file2,"\n");
+        }
+        fprintf(file2,"%s",inserting_str);
+    }
+    fclose(file1); fclose(file2); // roy file 2 mohtava ye asli ro neveshtam
+
+    FILE * file3 = fopen(address,"w");
+    FILE * file4 = fopen("./temp/temp_insert.txt","r");
+
+    while ((ch=fgetc(file4)) != EOF)
+    {
+        fprintf(file3,"%c",ch);
+    }
+    fclose(file3); fclose(file4);
+}//insert("./root/test2.txt",1,0,"\nsalam ino insert kardam\n ");
 
 
 
 int main()
 {
 
-    create_folder("root/folder1/f/f/f");
+    //create_file("./root/test_insert.txt");
+    //insert("./root/test_insert.txt",3,0,"a");
     return 0;
 }
 
