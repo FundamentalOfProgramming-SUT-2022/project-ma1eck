@@ -109,14 +109,68 @@ void insert(char * address,int line_number , int start_pos,char * inserting_str)
     }
     fclose(file3); fclose(file4);
 }//insert("./root/test2.txt",1,0,"\nsalam ino insert kardam\n ");
+void remove_by_index(char* address ,int line_number , int start_pos,int size , char direction )
+{
+    FILE * file1 = fopen(address,"r");
+    FILE * file2 = fopen("./temp/temp_remove.txt","w");
+    char ch;
+    int line=1 ;
+    int char_before_removing = 0;
+    int flag =0 ;
+    while ((ch=fgetc(file1)) != EOF)
+    {
+        if(line == line_number && flag == 0)
+        {
+            for(int pos =0 ; pos< start_pos ; pos++)
+            {
+                char_before_removing ++;
+                fprintf(file2,"%c",ch);
+                ch = fgetc(file1);
+            }
+            flag = 1;
+        }
+        if(ch=='\n')
+        {
+            line++;
+        }
+        char_before_removing += 1-flag;
+        fprintf(file2,"%c",ch);
+    }
+    //printf("%d",char_before_removing);
+    if(direction == 'b')
+    {
+        char_before_removing -= size;
+    }
+    char_before_removing++;
+    fclose(file1); fclose(file2);
 
+    FILE * file3 = fopen(address,"w");
+    FILE * file4 = fopen("./temp/temp_remove.txt","r");
+
+    int i=1;
+    while ((ch=fgetc(file4)) != EOF)
+    {
+        if(char_before_removing == i)
+        {
+            for(int j=0 ; j<size ;j++)
+            {
+                ch = fgetc(file4);
+            }
+        }
+        i++;
+        if(ch==EOF)
+            break;
+        fprintf(file3,"%c",ch);
+    }
+    fclose(file3); fclose(file4);
+
+}//remove_by_index("./root/test_insert.txt",1,1,1,'b');
 
 
 int main()
 {
 
-    //create_file("./root/test_insert.txt");
-    //insert("./root/test_insert.txt",3,0,"a");
+
     return 0;
 }
 
