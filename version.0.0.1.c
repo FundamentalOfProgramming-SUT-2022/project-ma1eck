@@ -16,11 +16,13 @@ int check_line_pos(char* address ,int line_number , int start_pos); // check if 
 void copy_to_clipboard(char* address ,int line_number , int start_pos,int size , char direction );
 void cut_to_clipboard(char* address ,int line_number , int start_pos,int size , char direction );
 void initialize();
+void insert_from_clipboard(char * address,int line_number , int start_pos);
+
 
 int main()
 {
     initialize();
-    cut_to_clipboard("./root/test2.txt",2,3,6,'b');
+
 
     return 0;
 }
@@ -66,7 +68,6 @@ void create_folder(char * address)
     }
     free(temp_address);
 }//create_folder("root/folder1/f/f/f");
-
 void * read_file(char * address) // this is a valid address , return a string that shows what's in the file
 {
     char ch;
@@ -184,7 +185,6 @@ void remove_by_index(char* address ,int line_number , int start_pos,int size , c
     fclose(file3); fclose(file4);
 
 }//remove_by_index("./root/test_insert.txt",1,1,1,'b');
-
 int check_line_pos(char* address ,int line_number , int start_pos) // check if line and pos are valid
 {
     FILE * file = fopen(address,"r");
@@ -196,7 +196,7 @@ int check_line_pos(char* address ,int line_number , int start_pos) // check if l
         {
             line++;
         }
-        if(ch=='\0'|| ch==EOF)
+        if( ch==EOF)
         {
             break;
         }
@@ -207,7 +207,7 @@ int check_line_pos(char* address ,int line_number , int start_pos) // check if l
         while (pos<start_pos)
         {
             char ch = fgetc(file);
-            if(ch=='\0' || ch=='\n' || ch==EOF)
+            if( ch=='\n' || ch==EOF)
             {
                 break;
             }
@@ -237,7 +237,10 @@ void initialize()
 {
     create_folder("./root");
     create_folder("./temp");
-    create_file("./temp/temp_clipboard.txt");
+    if (!fopen("./temp/temp_clipboard.txt","r"))
+    {
+        fclose(fopen("./temp/temp_clipboard.txt","w"));
+    }
 }
 void copy_to_clipboard(char* address ,int line_number , int start_pos,int size , char direction )
 {
@@ -349,3 +352,60 @@ void cut_to_clipboard(char* address ,int line_number , int start_pos,int size , 
     fclose(file3); fclose(file4); fclose(file5);
 
 }//cut_to_clipboard("./root/test2.txt",2,3,6,'b');
+void insert_from_clipboard(char * address,int line_number , int start_pos)
+{
+    FILE * file1 = fopen(address,"r");
+    FILE * file2 = fopen("./temp/temp_paste.txt","w");
+    FILE * file25 = fopen("./temp/temp_clipboard.txt","r");
+    char ch;
+    int line=1 ;
+    int is_inserted = 0;
+    while ((ch=fgetc(file1)) != EOF)
+    {
+        if(line == line_number && is_inserted == 0)
+        {
+            for(int pos =0 ; pos< start_pos ; pos++)
+            {
+                fprintf(file2,"%c",ch);
+                ch = fgetc(file1);
+            }
+            char ch2 = fgetc(file25);
+            while(ch2!=EOF){
+                fprintf(file2,"%c",ch2);
+                ch2 = fgetc(file25);
+            }
+            is_inserted =1 ;
+        }
+        if(ch=='\n')
+        {
+            line++;
+        }
+        fprintf(file2,"%c",ch);
+    }
+    if(is_inserted == 0)
+    {
+
+        if(line<line_number)
+        {
+            fprintf(file2,"\n");
+        }
+        char ch2 = fgetc(file25);
+        while(ch2!=EOF){
+            fprintf(file2,"%c",ch2);
+            ch2 = fgetc(file25);
+        }
+    }
+    fclose(file1); fclose(file2); fclose(file25); // roy file 2 mohtava ye asli ro neveshtam
+
+    FILE * file3 = fopen(address,"w");
+    FILE * file4 = fopen("./temp/temp_paste.txt","r");
+
+    while ((ch=fgetc(file4)) != EOF)
+    {
+        fprintf(file3,"%c",ch);
+    }
+    fclose(file3); fclose(file4);
+}//insert_from_clipboard("./root/test.txt",1,0);
+
+
+
