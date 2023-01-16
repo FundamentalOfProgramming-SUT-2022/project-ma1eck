@@ -17,12 +17,12 @@ void copy_to_clipboard(char* address ,int line_number , int start_pos,int size ,
 void cut_to_clipboard(char* address ,int line_number , int start_pos,int size , char direction );
 void initialize();
 void insert_from_clipboard(char * address,int line_number , int start_pos);
-
+void line_compare(char * address1 , char * address2);
 
 int main()
 {
     initialize();
-
+    line_compare("./root/test2.txt","./root/test.txt");
 
     return 0;
 }
@@ -406,6 +406,147 @@ void insert_from_clipboard(char * address,int line_number , int start_pos)
     }
     fclose(file3); fclose(file4);
 }//insert_from_clipboard("./root/test.txt",1,0);
+void line_compare(char * address1 , char * address2) // this function print the result and don't return it;
+{
+    FILE * file1 = fopen(address1,"r");
+    FILE * file2 = fopen(address2,"r");
+
+    char * str1 = (char*)malloc(1000000*sizeof(char));
+    char * str2 = (char*)malloc(1000000*sizeof(char));
+
+    int finish1 = 0;
+    int finish2 = 0;
+    int line = 1;
+    while (1)
+    {
+        if(fgets(str1,1000000,file1) == NULL)
+        {
+            finish1 = 1;
+        }
+
+        if(fgets(str2,1000000,file2) == NULL)
+        {
+            finish2 = 1;
+        }
+        if(finish1==1 || finish2==1)
+        {
+            break;
+        }
+
+        for(int i=0; i<1000000; i++)
+        {
+            if(str2[i]=='\0'&&str2[i-1]!='\n')
+            {
+                str2[i] = '\n'; str2[i+1] = '\0';
+
+            }
+            if(str2[i] == '\0')
+                break;
+
+        }
+        for(int i=0; i<1000000; i++)
+        {
+            if(str1[i]=='\0'&&str1[i-1]!='\n')
+            {
+                str1[i] = '\n'; str1[i+1] = '\0';
+
+            }
+            if(str1[i] == '\0')
+                break;
+
+        }
+
+        if(strcmp(str1,str2) != 0 )
+        {
+            printf("============ #%d ============\n",line);
+            printf("%s",str1);
+            printf("%s",str2);
+
+        }
+
+        line++;
+    }
+
+    if(finish1==0)
+    {
+        fclose(file2);
+        int start_line = line;
+        int finish_line = line-1;
+        while (!finish1)
+        {
+            if(fgets(str1,1000000,file1) == NULL)
+            {
+                finish1 = 1;
+            }
+            finish_line++;
+        }
+        fclose(file1);
+        printf("<<<<<<<<<<<< #%d - #%d<<<<<<<<<<<<\n",start_line,finish_line);
+
+        file1 = fopen(address1,"r");
+        for(int i=1 ;i<start_line ; i++)
+        {
+            fgets(str1,1000000,file1);
+        }
+        for(int i=start_line ;i<=finish_line ; i++)
+        {
+            fgets(str1,1000000,file1);
+            for(int i=0; i<1000000; i++)
+            {
+            if(str1[i]=='\0'&&str1[i-1]!='\n')
+            {
+                str1[i] = '\n'; str1[i+1] = '\0';
+            }
+            if(str1[i] == '\0')
+                break;
+            }
+            printf("%s",str1);
+        }
+        fclose(file1);
+        return;
+    }
+    if(finish2==0)
+    {
+        fclose(file1);
+        int start_line = line;
+        int finish_line = line-1;
+        while (!finish2)
+        {
+            if(fgets(str2,1000000,file2) == NULL)
+            {
+                finish2 = 1;
+            }
+            finish_line++;
+        }
+        fclose(file2);
+        printf(">>>>>>>>>>>> #%d - #%d>>>>>>>>>>>>\n",start_line,finish_line);
+
+        file2 = fopen(address2,"r");
+        for(int i=1 ;i<start_line ; i++)
+        {
+            fgets(str2,1000000,file2);
+        }
+        for(int i=start_line ;i<=finish_line ; i++)
+        {
+            fgets(str2,1000000,file2);
+            for(int i=0; i<1000000; i++)
+            {
+            if(str2[i]=='\0'&&str2[i-1]!='\n')
+            {
+                str2[i] = '\n'; str2[i+1] = '\0';
+            }
+            if(str2[i] == '\0')
+                break;
+            }
+            printf("%s",str2);
+        }
+        fclose(file2);
+        return;
+    }
+
+
+    fclose(file1);  fclose(file2);
+}//line_compare("./root/test2.txt","./root/test.txt");
 
 
 
