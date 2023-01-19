@@ -5,12 +5,35 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+/*
+to do list :
+
+1) bayad bebinam function haii ke output daran ro che konam :
+- read_file    : return a string
+- line_compare : printf
+- find
+
+
+2) invalid inputs
+- file's existence
+- folder's existence
+
+
+*/
+
+/*
+some notes for using this program
+
+- first convert the input string before passing it to "find" and "insert"
+
+
+*/
 
 
 void create_file(char * address);// directories exist
 void create_folder(char * address);
 void * read_file(char * address); // this is a valid address , return a string that shows what's in the file
-void insert(char * address,int line_number , int start_pos,char * inserting_str);
+void insert(char * address,int line_number , int start_pos,char * inserting_str); // must first convert the input string
 void remove_by_index(char* address ,int line_number , int start_pos,int size , char direction );
 int check_line_pos(char* address ,int line_number , int start_pos); // check if line and pos are valid
 void copy_to_clipboard(char* address ,int line_number , int start_pos,int size , char direction );
@@ -18,11 +41,14 @@ void cut_to_clipboard(char* address ,int line_number , int start_pos,int size , 
 void initialize();
 void insert_from_clipboard(char * address,int line_number , int start_pos);
 void line_compare(char * address1 , char * address2);
+void simple_find(char *address , char * str); // must first convert the input string
+char * convert_input_str(char * str);
+
 
 int main()
 {
     initialize();
-    line_compare("./root/test2.txt","./root/test.txt");
+    //simple_find("./root/test" , "abc  aifkj \\* a star : \*");
 
     return 0;
 }
@@ -83,11 +109,12 @@ void * read_file(char * address) // this is a valid address , return a string th
     return result;
 
 }// printf("%s",read_file("./root/test.txt"));
-void insert(char * address,int line_number , int start_pos,char * inserting_str)
+void insert(char * address,int line_number , int start_pos,char * inserting_str) // must first convert the input string
 {
 
     FILE * file1 = fopen(address,"r");
     FILE * file2 = fopen("./temp/temp_insert.txt","w");
+    //char * inserting_str = convert_input_str(inserting_str0);
     char ch;
     int line=1 ;
     int is_inserted = 0;
@@ -547,6 +574,85 @@ void line_compare(char * address1 , char * address2) // this function print the 
 
     fclose(file1);  fclose(file2);
 }//line_compare("./root/test2.txt","./root/test.txt");
+void simple_find(char *address , char * str)
+{
+    FILE * file = fopen(address,"r");
+    int star=0;
+    int lenght = strlen(str);
+    char * strcopy = (char*)malloc(sizeof(char)*(lenght+1));
+    int counter = 0;
 
+
+    for(int i=0 ;i<lenght ; i++)
+    {
+        if(str[i]=='*')
+        {
+            if(!(i!=0 && str[i-1]!='\\'))
+            {
+                star = 1 ;
+            }
+
+        }
+        else if(str[i]=='\\' && str[i+1]=='*')
+        {
+            strcopy[counter] = '*';
+            counter--;
+        }
+        else
+        {
+            strcopy[counter] = str[i];
+        }
+
+        if(star==1)
+        {
+            break;
+        }
+
+        counter++;
+    }
+    strcopy[counter+1] = '\0';
+    printf("%c ",str[12]);
+
+    for(int i=0 ; i<counter ; i++)
+    {
+        printf("%c",strcopy[i]);
+    }
+
+
+
+
+    fclose(file);
+}
+char * convert_input_str(char * str)
+{
+    char * result = (char *)malloc((strlen(str)+1)*sizeof(char));
+    int i=0;
+    int counter = 0;
+    while(i<strlen(str)+1 && str[i-1] != '\0')
+    {
+        if(str[i]=='\\' && str[i+1]=='n')
+        {
+            result[counter] = '\n';
+            i+=2;
+            counter++;
+            continue;
+        }
+        else if(str[i]=='\\' && str[i+1]=='\\')
+        {
+            result[counter] = '\\';
+            i+=2;
+            counter++;
+            continue;
+        }
+        else
+        {
+            result[counter] = str[i];
+            counter++;
+            i++;
+        }
+    }
+
+    return result;
+}
 
 
