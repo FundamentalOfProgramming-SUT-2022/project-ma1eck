@@ -24,7 +24,7 @@ to do list :
 /*
 some notes for using this program
 
-- first convert the input string before passing it to "find" and "insert"
+- when I get string from user first convert the input string before passing it to "find" and "insert"
 
 
 */
@@ -43,12 +43,16 @@ void insert_from_clipboard(char * address,int line_number , int start_pos);
 void line_compare(char * address1 , char * address2);
 void simple_find(char *address , char * str); // must first convert the input string
 char * convert_input_str(char * str);
+int strcmp2(char * str1 , char * str2 , int lenght);
 
 
 int main()
 {
     initialize();
-    //simple_find("./root/test" , "abc  aifkj \\* a star : \*");
+    char *ch = (char * )malloc(100);
+    gets(ch);
+    ch = convert_input_str(ch);
+    simple_find("./root/test.txt" , ch);
 
     return 0;
 }
@@ -576,52 +580,85 @@ void line_compare(char * address1 , char * address2) // this function print the 
 }//line_compare("./root/test2.txt","./root/test.txt");
 void simple_find(char *address , char * str)
 {
-    FILE * file = fopen(address,"r");
-    int star=0;
     int lenght = strlen(str);
-    char * strcopy = (char*)malloc(sizeof(char)*(lenght+1));
+    char * copy_str = (char*)malloc((lenght+1)*sizeof(char));
+    int i = 0;
     int counter = 0;
+    int flag4star = 0 ;
 
-
-    for(int i=0 ;i<lenght ; i++)
+    while(i<lenght+1 && (str[i-1] != '\0' || i==1 ))
     {
-        if(str[i]=='*')
+        if(str[i]=='\\' && str[i+1]=='*')
         {
-            if(!(i!=0 && str[i-1]!='\\'))
-            {
-                star = 1 ;
-            }
-
+            copy_str[counter] = '*';
+            i+=2;
+            counter++;
+            continue;
         }
-        else if(str[i]=='\\' && str[i+1]=='*')
+        else if(str[i]!='\\' && str[i+1]=='*')
         {
-            strcopy[counter] = '*';
-            counter--;
+            flag4star = 1;
+            copy_str[counter] = str[i];
+            copy_str[counter+1] = str[i+1];
+            i+=2;
+            counter+=1;
+            continue;
         }
         else
         {
-            strcopy[counter] = str[i];
+            copy_str[counter] = str[i];
+            counter++;
+            i++;
         }
-
-        if(star==1)
-        {
-            break;
-        }
-
-        counter++;
     }
-    strcopy[counter+1] = '\0';
-    printf("%c ",str[12]);
-
-    for(int i=0 ; i<counter ; i++)
+    if(flag4star == 0)
     {
-        printf("%c",strcopy[i]);
+        str = copy_str;
+        int str_lenght = strlen(str);
+        FILE * file = fopen(address,"r");
+        char * a_line = (char*)malloc(1000000*sizeof(char));
+
+        int char_before = 0;
+        int main_result = -1;
+        while(fgets(a_line,1000000,file) != NULL)
+        {
+            int line_lenght = strlen(a_line);
+            int result = -1;
+            int flag = 0;
+
+            for(int i= 0 ; i<line_lenght ; i++)
+            {
+                if(flag == 1)
+                {
+                    break;
+                }
+
+                int comp_result = strcmp2(a_line+i,str,str_lenght);
+                if(comp_result==1)
+                {
+                    result = i;
+                    flag ++ ;
+                }
+                else if(comp_result == -1)
+                {
+                    break;
+                }
+
+
+            }
+            if(flag == 1)
+            {
+                main_result = char_before + result;
+                break;
+            }
+
+            char_before +=line_lenght;
+        }
+        printf("result : %d",main_result);
+
+
+        fclose(file);
     }
-
-
-
-
-    fclose(file);
 }
 char * convert_input_str(char * str)
 {
@@ -654,5 +691,21 @@ char * convert_input_str(char * str)
 
     return result;
 }
+int strcmp2(char * str1 , char * str2 , int lenght)
+{
+    if(strlen(str1) < lenght || strlen(str2) < lenght )
+    {
+        return -1;
+    }
 
+    for(int i = 0 ; i<lenght ; i++)
+    {
+        if (str1[i] != str2[i])
+        {
+            return 0;
+        }
+    }
+    return 1;
+
+}
 
