@@ -13,10 +13,14 @@ to do list :
 - line_compare : printf
 - find
 
-
 2) invalid inputs
 - file's existence
 - folder's existence
+
+3) wildcard of find
+- simple find
+- count find
+
 
 
 */
@@ -44,15 +48,19 @@ void line_compare(char * address1 , char * address2);
 void simple_find(char *address , char * str); // must first convert the input string
 char * convert_input_str(char * str);
 int strcmp2(char * str1 , char * str2 , int lenght);
+int find_counter(char *address , char * str);
+char * nth_word(char * str, int n);
+int strcmp_wildcard(char * str1 , char * str2);//first string has *
+int strcmp_begining_with_star(char * str1 , char * str2);//first string has *
+
+
 
 
 int main()
 {
     initialize();
-    char *ch = (char * )malloc(100);
-    gets(ch);
-    ch = convert_input_str(ch);
-    simple_find("./root/test.txt" , ch);
+
+    simple_find("./root/test.txt"," ");
 
     return 0;
 }
@@ -613,6 +621,7 @@ void simple_find(char *address , char * str)
     }
     if(flag4star == 0)
     {
+        printf("4747");
         str = copy_str;
         int str_lenght = strlen(str);
         FILE * file = fopen(address,"r");
@@ -658,6 +667,33 @@ void simple_find(char *address , char * str)
 
 
         fclose(file);
+    }
+    else
+    {
+        if(str[0]=='*')
+        {
+            str = copy_str;
+            int str_lenght = strlen(str);
+            FILE * file = fopen(address,"r");
+            char * a_line = (char*)malloc(1000000*sizeof(char));
+
+            int char_before = 0;
+            int main_result = -1;
+            while(fgets(a_line,1000000,file) != NULL)
+            {
+                int line_lenght = strlen(a_line);
+                int result = strcmp_begining_with_star(str,a_line);
+                if(result != -1)
+                {
+                    main_result = result+char_before;
+                    break;
+                }
+                char_before +=line_lenght;
+            }
+            printf("result : %d",main_result);
+
+            fclose(file);
+        }
     }
 }
 char * convert_input_str(char * str)
@@ -707,5 +743,139 @@ int strcmp2(char * str1 , char * str2 , int lenght)
     }
     return 1;
 
+}
+int find_counter(char *address , char * str)
+{
+    int lenght = strlen(str);
+    char * copy_str = (char*)malloc((lenght+1)*sizeof(char));
+    int i = 0;
+    int counter = 0;
+    int flag4star = 0 ;
+
+    while(i<lenght+1 && (str[i-1] != '\0' || i==1 ))
+    {
+        if(str[i]=='\\' && str[i+1]=='*')
+        {
+            copy_str[counter] = '*';
+            i+=2;
+            counter++;
+            continue;
+        }
+        else if(str[i]!='\\' && str[i+1]=='*')
+        {
+            flag4star = 1;
+            copy_str[counter] = str[i];
+            copy_str[counter+1] = str[i+1];
+            i+=2;
+            counter+=1;
+            continue;
+        }
+        else
+        {
+            copy_str[counter] = str[i];
+            counter++;
+            i++;
+        }
+    }
+    if(flag4star == 0)
+    {
+        str = copy_str;
+        int str_lenght = strlen(str);
+        FILE * file = fopen(address,"r");
+        char * a_line = (char*)malloc(1000000*sizeof(char));
+
+        int main_result = 0;
+        while(fgets(a_line,1000000,file) != NULL)
+        {
+            int line_lenght = strlen(a_line);
+            int result = -1;
+
+            for(int i= 0 ; i<line_lenght ; i++)
+            {
+                int comp_result = strcmp2(a_line+i,str,str_lenght);
+                if(comp_result==1)
+                {
+                    result = i;
+                    main_result ++ ;
+                }
+                else if(comp_result == -1)
+                {
+                    break;
+                }
+            }
+
+        }
+        return main_result;
+
+
+        fclose(file);
+    }
+}
+char * nth_word(char * str,int n)
+{
+    char * result = (char *)malloc(strlen(str)*sizeof(char));
+    int word_counter = 1;
+    int counter=0;
+
+    for (int i=0 ; i<strlen(str)+1 ; i++)
+    {
+        if(str[i] == ' ' || str[i]=='\n' || str[i]=='\0' || str[i]==EOF )
+        {
+            if(word_counter == n)
+            {
+                result[counter] = '\0';
+                return result;
+            }
+            result[counter] = '\0';
+            word_counter++;
+            counter = -1;
+        }
+        else
+        {
+            result[counter] = str[i];
+        }
+        counter++;
+    }
+    result[0] = '\0';
+    return result;
+}
+int strcmp_begining_with_star(char * str1 , char * str2)//first string has *
+{
+    str1++;
+    int result;
+    int flag = 0;
+    for(int i=1 ; i<strlen(str2) ; i++)
+    {
+        if(flag == 1)
+        {
+            break;
+        }
+
+        int comp_result = strcmp2(str1,str2+i,strlen(str1));
+        if(comp_result==1 && str2[i-1]!=' ')
+        {
+            result = i;
+            flag ++ ;
+        }
+        else if(comp_result == -1)
+        {
+            break;
+        }
+
+    }
+    if (flag == 0)
+    {
+        return -1;
+    }
+    printf("%d",result);
+    int main_result=-1;
+    for(int i=0 ; i<result ; i++)
+    {
+        if(str2[i]==' ')
+        {
+            main_result = i+1;
+        }
+    }
+    return main_result;
 }
 
