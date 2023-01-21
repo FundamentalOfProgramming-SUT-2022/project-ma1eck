@@ -18,8 +18,11 @@ to do list :
 - folder's existence
 
 3) wildcard of find
-- simple find
-- count find
+- simple find -> ending with *
+- count find ->beginning and ending with *
+
+find function is not finished
+
 
 
 
@@ -51,7 +54,15 @@ int strcmp2(char * str1 , char * str2 , int lenght);
 int find_counter(char *address , char * str);
 char * nth_word(char * str, int n);
 int strcmp_wildcard(char * str1 , char * str2);//first string has *
-int strcmp_begining_with_star(char * str1 , char * str2);//first string has *
+int strcmp_beginning_with_star(char * str1 , char * str2);//first string has *
+int strcmp_ending_with_star(char * str1 , char * str2);//first string has *
+char strmatch_wildcard(char str[], char pattern[], int n, int m);
+void simple_grep(char * str ,int n ,char * addresses[n]); // n : number of files
+int count_grep  (char * str ,int n ,char * addresses[n]);
+void l_grep     (char * str ,int n ,char * addresses[n]);
+
+
+
 
 
 
@@ -60,7 +71,12 @@ int main()
 {
     initialize();
 
-    simple_find("./root/test.txt"," ");
+    char *ch = (char * )malloc(100);
+    gets(ch);
+    ch = convert_input_str(ch);
+
+    char * ad[3] = {"./root/test.txt" , "./root/test2.txt" , "./root/test3.txt" };
+    l_grep(ch,3,ad);
 
     return 0;
 }
@@ -619,9 +635,12 @@ void simple_find(char *address , char * str)
             i++;
         }
     }
+    if(str[0]=='*')
+    {
+        flag4star = 1;
+    }
     if(flag4star == 0)
     {
-        printf("4747");
         str = copy_str;
         int str_lenght = strlen(str);
         FILE * file = fopen(address,"r");
@@ -682,7 +701,31 @@ void simple_find(char *address , char * str)
             while(fgets(a_line,1000000,file) != NULL)
             {
                 int line_lenght = strlen(a_line);
-                int result = strcmp_begining_with_star(str,a_line);
+                int result = strcmp_beginning_with_star(str,a_line);
+                if(result != -1)
+                {
+                    main_result = result+char_before;
+                    break;
+                }
+                char_before +=line_lenght;
+            }
+            printf("result : %d",main_result);
+
+            fclose(file);
+        }
+        if(str[strlen(str-1)]=='*')
+        {
+            str = copy_str;
+            int str_lenght = strlen(str);
+            FILE * file = fopen(address,"r");
+            char * a_line = (char*)malloc(1000000*sizeof(char));
+
+            int char_before = 0;
+            int main_result = -1;
+            while(fgets(a_line,1000000,file) != NULL)
+            {
+                int line_lenght = strlen(a_line);
+                int result = strcmp_beginning_with_star(str,a_line);
                 if(result != -1)
                 {
                     main_result = result+char_before;
@@ -839,7 +882,7 @@ char * nth_word(char * str,int n)
     result[0] = '\0';
     return result;
 }
-int strcmp_begining_with_star(char * str1 , char * str2)//first string has *
+int strcmp_beginning_with_star(char * str1 , char * str2)//first string has *
 {
     str1++;
     int result;
@@ -867,7 +910,6 @@ int strcmp_begining_with_star(char * str1 , char * str2)//first string has *
     {
         return -1;
     }
-    printf("%d",result);
     int main_result=-1;
     for(int i=0 ; i<result ; i++)
     {
@@ -877,5 +919,153 @@ int strcmp_begining_with_star(char * str1 , char * str2)//first string has *
         }
     }
     return main_result;
+}
+int strcmp_ending_with_star(char * str1 , char * str2)//first string has *
+{
+    str1;
+
+    int str1_lenght = strlen(str1) - 1;
+    int result;
+    int flag = 0;
+    for(int i=0 ; i<strlen(str2) - str1_lenght ; i++)
+    {
+        if(flag == 1)
+        {
+            break;
+        }
+
+        int comp_result = strcmp2(str1,str2+i,str1_lenght);
+        if(comp_result==1 && str2[i+str1_lenght]!=' ' && str2[i+str1_lenght]!='\0' )
+        {
+            result = i;
+            flag ++ ;
+        }
+        else if(comp_result == -1)
+        {
+            break;
+        }
+
+    }
+    if (flag == 0)
+    {
+        return -1;
+    }
+    int main_result=-1;
+    for(int i=0 ; i<result ; i++)
+    {
+        if(str2[i]==' ')
+        {
+            main_result = i+1;
+        }
+    }
+    return main_result;
+}
+
+char strmatch_wildcard(char str[], char pattern[], int n, int m)
+{
+    if (m == 0)
+        return (n == 0);
+
+    char lookup[n + 1][m + 1];
+
+    memset(lookup, 0, sizeof(lookup));
+
+    lookup[0][0] = 1;
+
+    for (int j = 1; j <= m; j++)
+        if (pattern[j - 1] == '*')
+            lookup[0][j] = lookup[0][j - 1];
+
+    for (int i = 1; i <= n; i++) {
+        for (int j = 1; j <= m; j++) {
+            if (pattern[j - 1] == '*')
+                lookup[i][j] = lookup[i][j - 1] || lookup[i - 1][j];
+            else if (str[i - 1] == pattern[j - 1])
+                lookup[i][j] = lookup[i - 1][j - 1];
+
+            else
+                lookup[i][j] = 0;
+        }
+    }
+
+    return lookup[n][m];
+}
+void simple_grep(char * str ,int n ,char * addresses[n]) // n : number of files
+{
+    char flag = 0 ;
+    int str_lenght = strlen(str);
+    for(int j=0 ; j<n ; j++ )
+    {
+        FILE * file = fopen(addresses[j],"r");
+        char * a_line = (char*)malloc(1000000*sizeof(char));
+
+        while(fgets(a_line,1000000,file)!= NULL)
+        {
+            int line_lenght = strlen(a_line);
+
+            for(int i= 0 ; i<line_lenght ; i++)
+            {
+                int comp_result = strcmp2(a_line+i,str,str_lenght);
+                if(comp_result==1)
+                {
+                    printf("%s: %s",addresses[j],a_line);
+                    if(a_line[line_lenght-1]!='\n')
+                    {
+                        printf("\n");
+                    }
+                    flag = 1;
+                    break;
+
+                }
+                else if(comp_result == -1)
+                {
+                    break;
+                }
+            }
+
+        }
+        fclose(file);
+    }
+    if(flag == 0)
+    {
+        printf("-1\n");
+    }
+
+
+}
+
+void l_grep(char * str , int n , char * addresses[n])
+{
+    char flag = 0 ;
+    int str_lenght = strlen(str);
+    for(int j=0 ; j<n ; j++ )
+    {
+        FILE * file = fopen(addresses[j],"r");
+        char * a_line = (char*)malloc(1000000*sizeof(char));
+
+        char end = 0;
+        while(fgets(a_line,1000000,file)!= NULL && !end)
+        {
+            int line_lenght = strlen(a_line);
+
+            for(int i= 0 ; i<line_lenght ; i++)
+            {
+                int comp_result = strcmp2(a_line+i,str,str_lenght);
+                if(comp_result==1)
+                {
+                    printf("%s\n",addresses[j]);
+                    end = 1;
+                    break;
+
+                }
+                else if(comp_result == -1)
+                {
+                    break;
+                }
+            }
+
+        }
+        fclose(file);
+    }
 }
 
