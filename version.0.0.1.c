@@ -4,6 +4,15 @@
 #include <unistd.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include<stdio.h>
+#include<unistd.h>
+#include<dirent.h>
+#include<stdlib.h>
+#include<string.h>
+#include <stdio.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <unistd.h>
 
 /*
 to do list :
@@ -12,6 +21,10 @@ to do list :
 - read_file    : return a string
 - line_compare : printf
 - find
+- grep
+ - simple
+ - l
+- tree : instead of printf , write in file
 
 2) invalid inputs
 - file's existence
@@ -60,6 +73,10 @@ char strmatch_wildcard(char str[], char pattern[], int n, int m);
 void simple_grep(char * str ,int n ,char * addresses[n]); // n : number of files
 int count_grep  (char * str ,int n ,char * addresses[n]);
 void l_grep     (char * str ,int n ,char * addresses[n]);
+char tree(char * path, int depth_level , int final_depth); // depth can be -1
+int isDir(const char* fileName);
+
+
 
 
 
@@ -71,12 +88,7 @@ int main()
 {
     initialize();
 
-    char *ch = (char * )malloc(100);
-    gets(ch);
-    ch = convert_input_str(ch);
-
-    char * ad[3] = {"./root/test.txt" , "./root/test2.txt" , "./root/test3.txt" };
-    l_grep(ch,3,ad);
+    tree("./root",0,3);
 
     return 0;
 }
@@ -960,7 +972,6 @@ int strcmp_ending_with_star(char * str1 , char * str2)//first string has *
     }
     return main_result;
 }
-
 char strmatch_wildcard(char str[], char pattern[], int n, int m)
 {
     if (m == 0)
@@ -1033,7 +1044,6 @@ void simple_grep(char * str ,int n ,char * addresses[n]) // n : number of files
 
 
 }
-
 void l_grep(char * str , int n , char * addresses[n])
 {
     char flag = 0 ;
@@ -1068,4 +1078,91 @@ void l_grep(char * str , int n , char * addresses[n])
         fclose(file);
     }
 }
+int count_grep  (char * str ,int n ,char * addresses[n])
+{
+    int counter = 0 ;
+    int str_lenght = strlen(str);
+    for(int j=0 ; j<n ; j++ )
+    {
+        FILE * file = fopen(addresses[j],"r");
+        char * a_line = (char*)malloc(1000000*sizeof(char));
+
+        while(fgets(a_line,1000000,file)!= NULL)
+        {
+            int line_lenght = strlen(a_line);
+
+            for(int i= 0 ; i<line_lenght ; i++)
+            {
+                int comp_result = strcmp2(a_line+i,str,str_lenght);
+                if(comp_result==1)
+                {
+                    counter++ ;
+                    break;
+
+                }
+                else if(comp_result == -1)
+                {
+                    break;
+                }
+            }
+
+        }
+        fclose(file);
+    }
+    return counter;
+
+}
+
+int isDir(const char* fileName)
+{
+    struct stat path;
+
+    stat(fileName, &path);
+
+    return 1 - S_ISREG(path.st_mode);
+}
+char tree(char * path, int depth_level , int final_depth)
+{
+    if(depth_level == final_depth+1 && final_depth!=-1)
+    {
+        return 0 ;
+    }
+    else if(isDir(path)==0)
+    {
+        return 0 ;
+    }
+    DIR *dir;
+    struct dirent *file;
+
+    dir = opendir(path);
+
+    while((file = readdir(dir))!=NULL)
+    {
+
+        if(file->d_name[0]=='.')
+        {
+            continue;
+        }
+
+        for(int i=0 ; i<depth_level ; i++)
+        {
+            printf("|  ");
+        }
+        printf("|__%s\n",file->d_name);
+
+        char * file_path = (char *)malloc(1000000);
+        strcpy(file_path,path);
+        if(file_path[strlen(path)-1]!='/')
+        {
+            strcat(file_path,"/");
+        }
+        strcat(file_path,file->d_name);
+        tree(file_path,depth_level+1,final_depth);
+
+    }
+
+return 1;
+}//tree("./root/",0,2);
+
+
 
