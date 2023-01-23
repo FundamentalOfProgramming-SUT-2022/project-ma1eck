@@ -52,7 +52,7 @@ some notes for using this program
 
 void create_file(char * address);// directories exist
 void create_folder(char * address);
-void * read_file(char * address); // this is a valid address , return a string that shows what's in the file
+char * read_file(char * address); // this is a valid address , return a string that shows what's in the file
 void insert(char * address,int line_number , int start_pos,char * inserting_str); // must first convert the input string
 void remove_by_index(char* address ,int line_number , int start_pos,int size , char direction );
 int check_line_pos(char* address ,int line_number , int start_pos); // check if line and pos are valid
@@ -76,9 +76,8 @@ void l_grep     (char * str ,int n ,char * addresses[n]);
 char tree(char * path, int depth_level , int final_depth); // depth can be -1
 int isDir(const char* fileName);
 void closing_pair(char * address);
-
-
-
+void undo(char * address);
+void backup_a_file(char * address);
 
 
 
@@ -87,8 +86,18 @@ void closing_pair(char * address);
 int main()
 {
     initialize();
-
+/*
+    printf("1)\n%s\n",read_file("root/closing pair temp.txt"));
     closing_pair("./root/closing pair temp.txt");
+    printf("2)\n%s\n",read_file("./root/closing pair temp.txt"));
+    undo("./root/closing pair temp.txt");
+    //printf("3)\n%s\n",read_file("./root/closing pair temp.txt"));
+    /*
+    undo("./root/closing pair temp.txt");
+    printf("4)\n%s\n",read_file("./root/closing pair temp.txt"));
+    */
+    undo("./root/closing pair temp.txt");
+
     return 0;
 }
 
@@ -133,7 +142,7 @@ void create_folder(char * address)
     }
     free(temp_address);
 }//create_folder("root/folder1/f/f/f");
-void * read_file(char * address) // this is a valid address , return a string that shows what's in the file
+char * read_file(char * address) // this is a valid address , return a string that shows what's in the file
 {
     char ch;
     char* result = (char*) malloc(1000000*sizeof(char));  // 10000 is max number of characters
@@ -150,7 +159,7 @@ void * read_file(char * address) // this is a valid address , return a string th
 }// printf("%s",read_file("./root/test.txt"));
 void insert(char * address,int line_number , int start_pos,char * inserting_str) // must first convert the input string
 {
-
+    backup_a_file(address);
     FILE * file1 = fopen(address,"r");
     FILE * file2 = fopen("./temp/temp_insert.txt","w");
     //char * inserting_str = convert_input_str(inserting_str0);
@@ -197,6 +206,7 @@ void insert(char * address,int line_number , int start_pos,char * inserting_str)
 }//insert("./root/test2.txt",1,0,"\nsalam ino insert kardam\n ");
 void remove_by_index(char* address ,int line_number , int start_pos,int size , char direction )
 {
+    backup_a_file(address);
     FILE * file1 = fopen(address,"r");
     FILE * file2 = fopen("./temp/temp_remove.txt","w");
     char ch;
@@ -302,6 +312,7 @@ int check_line_pos(char* address ,int line_number , int start_pos) // check if l
 void initialize()
 {
     create_folder("./root");
+    create_folder("./pre");
     create_folder("./temp");
     if (!fopen("./temp/temp_clipboard.txt","r"))
     {
@@ -362,6 +373,7 @@ void copy_to_clipboard(char* address ,int line_number , int start_pos,int size ,
 }//copy_to_clipboard("./root/test2.txt",2,3,6,'b');
 void cut_to_clipboard(char* address ,int line_number , int start_pos,int size , char direction )
 {
+    backup_a_file(address);
     FILE * file1 = fopen(address,"r");
     FILE * file2 = fopen("./temp/temp_remove.txt","w");
     char ch;
@@ -420,6 +432,7 @@ void cut_to_clipboard(char* address ,int line_number , int start_pos,int size , 
 }//cut_to_clipboard("./root/test2.txt",2,3,6,'b');
 void insert_from_clipboard(char * address,int line_number , int start_pos)
 {
+    backup_a_file(address);
     FILE * file1 = fopen(address,"r");
     FILE * file2 = fopen("./temp/temp_paste.txt","w");
     FILE * file25 = fopen("./temp/temp_clipboard.txt","r");
@@ -1163,6 +1176,7 @@ return 1;
 }//tree("./root/",0,2);
 void closing_pair(char * address)
 {
+    backup_a_file(address);
     FILE * file = fopen(address,"r");
     FILE * temp_file = fopen("./temp/temp_closingPair.txt","w");
     char * a_line= (char *)malloc(1000000);
@@ -1305,5 +1319,88 @@ void closing_pair(char * address)
     }
     fclose(file); fclose(temp_file);
 }
+void backup_a_file(char * address)
+{
+    int i = 0 ;
+    while(strcmp2("root",address+i,4)==0)
+    {
+        i++;
+    }
+    i+=4;
+    char * path = (char*)malloc(1000000);
+    strcpy(path,"./pre");
+    strcat(path,address+i);
+    //printf("%s\n",path);
+
+    char * temp  = (char*)malloc(strlen(path));
+    int flag = 0;
+    for(int i=0 ; i<strlen(path); i++)
+    {
+        if(path[i]=='/')
+            flag = i;
+        temp[i] = path[i];
+    }
+    temp[flag] = '\0';
+    //printf("%s \n",temp);
+    create_folder(temp);
+    free(temp);
+
+    FILE * pre = fopen(path,"w");
+    FILE * file = fopen(address,"r");
+    char ch = fgetc(file);
+    while (ch!=EOF)
+    {
+        fprintf(pre,"%c",ch);
+        ch = fgetc(file);
+    }
+
+    fclose(file);    fclose(pre);
+}
+void undo(char * address)
+{
+    int i = 0 ;
+    while(strcmp2("root",address+i,4)==0)
+    {
+        i++;
+    }
+    i+=4;
+    char * path = (char*)malloc(1000000);
+    strcpy(path,"./pre");
+    strcat(path,address+i);
+    printf("%s\n",path);
+
+    FILE * temp = fopen("./temp/undo_temp.txt","w");
+    FILE * file = fopen(address,"r");
+
+    char ch = fgetc(file);
+    while (ch!=EOF)
+    {
+        fprintf(temp,"%c",ch);
+        ch = fgetc(file);
+    }
+    fclose(temp);    fclose(file);
 
 
+    FILE * pre = fopen(path,"r");
+    file = fopen(address,"w");
+    ch = fgetc(pre);
+    while (ch!=EOF)
+    {
+        fprintf(file,"%c",ch);
+        ch = fgetc(pre);
+    }
+    fclose(pre);    fclose(file);
+
+
+    pre = fopen(path,"w");
+    temp = fopen("./temp/undo_temp.txt","r");
+    ch = fgetc(temp);
+    while (ch!=EOF)
+    {
+        fprintf(pre,"%c",ch);
+        ch = fgetc(temp);
+    }
+
+    fclose(temp);    fclose(pre);
+
+}
