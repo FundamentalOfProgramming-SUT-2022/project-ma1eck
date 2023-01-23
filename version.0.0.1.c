@@ -75,7 +75,7 @@ int count_grep  (char * str ,int n ,char * addresses[n]);
 void l_grep     (char * str ,int n ,char * addresses[n]);
 char tree(char * path, int depth_level , int final_depth); // depth can be -1
 int isDir(const char* fileName);
-
+void closing_pair(char * address);
 
 
 
@@ -88,8 +88,7 @@ int main()
 {
     initialize();
 
-    tree("./root",0,3);
-
+    closing_pair("./root/closing pair temp.txt");
     return 0;
 }
 
@@ -1112,7 +1111,6 @@ int count_grep  (char * str ,int n ,char * addresses[n])
     return counter;
 
 }
-
 int isDir(const char* fileName)
 {
     struct stat path;
@@ -1163,6 +1161,144 @@ char tree(char * path, int depth_level , int final_depth)
 
 return 1;
 }//tree("./root/",0,2);
+void closing_pair(char * address)
+{
+    FILE * file = fopen(address,"r");
+    FILE * temp_file = fopen("./temp/temp_closingPair.txt","w");
+    char * a_line= (char *)malloc(1000000);
 
+
+    char flag = 1;
+    int pairs = 0 ;
+    char pre_char = '\n';
+    while(fgets(a_line,1000000,file)!=NULL)
+    {
+        pre_char = '\n';
+        int space_number = 0;
+        for(int i=0 ; i<strlen(a_line) ; i++)
+        {
+            if(a_line[i]=='{' ){
+                pairs ++;
+                if(pre_char!='\n'){
+                    fprintf(temp_file," ");
+                }
+                space_number=0;
+                fprintf(temp_file,"{");
+                pre_char = '{';
+            }
+            if(a_line[i]=='}'){
+                pairs --;
+                space_number=0;
+                if(pre_char!='\n'){
+                        fprintf(temp_file,"\n");
+                }
+                fprintf(temp_file,"}");
+                pre_char = '}';
+
+                if(pairs<0)
+                {
+                    flag = 0;
+                }
+            }
+            if((a_line[i]=='{' || a_line[i]=='}') && a_line[i+1]!='\n' && a_line[i+1]!=EOF && a_line[i+1]!='\0')
+                {
+                    fprintf(temp_file,"\n");
+                    pre_char='\n';
+                }
+            else if(a_line[i]!='}' && a_line[i]!='{')
+            {
+                if(a_line[i]!=' '){
+                    for(int j=0 ; j<space_number ; j++)
+                    {
+                        fprintf(temp_file," ");
+                    }
+                        pre_char = ' ';
+                    space_number = 0;
+                    fprintf(temp_file,"%c",a_line[i]);
+                    pre_char = a_line[i];
+                }
+                else{
+                    space_number++;
+                }
+
+            }
+        }
+        for(int j=0 ; j<space_number ; j++)
+        {
+            fprintf(temp_file," ");
+        }
+    }
+    fclose(file); fclose(temp_file);
+    if (pairs != 0)
+    {
+        flag = 0;
+    }
+
+
+
+
+    file = fopen(address,"w");
+    temp_file = fopen("./temp/temp_closingPair.txt","r");
+
+    if(flag == 1){
+        int tabs = 0;
+        char pre_ch2 , pre_ch;
+        while(fgets(a_line,1000000,temp_file)!=NULL)
+        {
+
+            if(a_line[0]=='}'){
+                tabs--;
+            }
+            for(int j=0 ; j<tabs ;j++)
+            {
+                fprintf(file,"    ");
+            }
+
+            for(int i=0; i<strlen(a_line); i++)
+            {
+                if(a_line[i]=='{')
+                {
+                    tabs++;
+                    fprintf(file,"{");
+                    pre_ch2= pre_ch;
+                    pre_ch = '{';
+                }
+                else if(a_line[i]=='}')
+                {
+                    if(pre_ch2 == '{')
+                    {
+                        for(int j=0 ; j<tabs+1 ;j++)
+                        {
+                            fprintf(file,"    ");
+                        }
+                        fprintf(file,"\n");
+                    }
+
+                    fprintf(file,"}");
+                    pre_ch2 = pre_ch;
+                    pre_ch = '}';
+                    //tabs--;
+                }
+                else
+                {
+                    pre_ch2 = pre_ch;
+                    pre_ch = a_line[i];
+                    fprintf(file,"%c",a_line[i]);
+                }
+            }
+        }
+    }
+    else
+    {
+        while(fgets(a_line,1000000,temp_file)!=NULL)
+        {
+            for(int i=0; i<strlen(a_line); i++)
+            {
+                fprintf(file,"%c",a_line[i]);
+            }
+        }
+    }
+    fclose(file); fclose(temp_file);
+}
 
 
