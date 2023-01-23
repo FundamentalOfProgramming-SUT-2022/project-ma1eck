@@ -1267,20 +1267,25 @@ void closing_pair(char * address)
                 {
                     if(pre_ch2 == '{')
                     {
+                        /*
                         for(int j=0 ; j<tabs+1 ;j++)
                         {
                             fprintf(file,"    ");
                         }
                         fprintf(file,"\n");
+                        */
                     }
 
                     fprintf(file,"}");
                     pre_ch2 = pre_ch;
                     pre_ch = '}';
-                    //tabs--;
                 }
                 else
                 {
+                    if(i==0)
+                    {
+                        while(a_line[i]==' ')   {i++;}
+                    }
                     pre_ch2 = pre_ch;
                     pre_ch = a_line[i];
                     fprintf(file,"%c",a_line[i]);

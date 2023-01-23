@@ -1,5 +1,16 @@
-int main() {
-     if (1 == 1) {
-        printf(“Hello world”);
+{
+    hutb kjhnk {
+        o o o o o o o      o {
+            tpggltobkgl {
+                gkkkkkdp;; fkifi {
+                    lfp olflv    llg {
+                        lfp
+                    }
+                    f;;;
+                }
+                flg {
+                }
+            }
+        }
     }
 }
