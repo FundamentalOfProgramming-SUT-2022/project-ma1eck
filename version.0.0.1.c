@@ -36,7 +36,8 @@ to do list :
 
 find function is not finished
 
-
+4)errors
+- insert : when line and pos are not valid
 
 
 */
@@ -78,6 +79,19 @@ int isDir(const char* fileName);
 void closing_pair(char * address);
 void undo(char * address);
 void backup_a_file(char * address);
+int count_space(char * str);
+int find2(char * address , char * pattern,int number);
+char strcmp_beginning_with_star2(char * str1 , char * str2);//first string has *
+char strcmp_ending_with_star2(char * str1 , char * str2);//first string has *
+int contvert2byword(int index ,char *str);
+int * find_all(char * address , char * pattern);
+char replace(char * address , char * pattern ,char * str, int number); // number = 1 for simple replace
+void remove_by_pos(char* address ,int pos ,int size , char direction );
+void insert_by_pos(char * address, int pos,char * inserting_str); // must first convert the input string
+char replace_all(char * address , char * pattern ,char * str);
+
+
+
 
 
 
@@ -86,21 +100,15 @@ void backup_a_file(char * address);
 int main()
 {
     initialize();
-/*
-    printf("1)\n%s\n",read_file("root/closing pair temp.txt"));
-    closing_pair("./root/closing pair temp.txt");
-    printf("2)\n%s\n",read_file("./root/closing pair temp.txt"));
-    undo("./root/closing pair temp.txt");
-    //printf("3)\n%s\n",read_file("./root/closing pair temp.txt"));
-    /*
-    undo("./root/closing pair temp.txt");
-    printf("4)\n%s\n",read_file("./root/closing pair temp.txt"));
-    */
-    undo("./root/closing pair temp.txt");
+
+    char * ch = (char*)malloc(100000);
+    gets(ch);
+    ch = convert_input_str(ch);
+
+    printf("%d",replace_all("root/test.txt",ch,"chekoty"));
 
     return 0;
 }
-
 //printf("%d",mkdir((char *)"rot"));
 void create_file(char * address)// directories exist
 {
@@ -877,6 +885,10 @@ int find_counter(char *address , char * str)
 
         fclose(file);
     }
+    else
+    {
+        return -1;
+    }
 }
 char * nth_word(char * str,int n)
 {
@@ -886,7 +898,7 @@ char * nth_word(char * str,int n)
 
     for (int i=0 ; i<strlen(str)+1 ; i++)
     {
-        if(str[i] == ' ' || str[i]=='\n' || str[i]=='\0' || str[i]==EOF )
+        if(str[i] == ' '  || str[i]=='\0' || str[i]==EOF )
         {
             if(word_counter == n)
             {
@@ -919,7 +931,7 @@ int strcmp_beginning_with_star(char * str1 , char * str2)//first string has *
         }
 
         int comp_result = strcmp2(str1,str2+i,strlen(str1));
-        if(comp_result==1 && str2[i-1]!=' ')
+        if(comp_result==1)
         {
             result = i;
             flag ++ ;
@@ -946,7 +958,6 @@ int strcmp_beginning_with_star(char * str1 , char * str2)//first string has *
 }
 int strcmp_ending_with_star(char * str1 , char * str2)//first string has *
 {
-    str1;
 
     int str1_lenght = strlen(str1) - 1;
     int result;
@@ -1404,3 +1415,399 @@ void undo(char * address)
     fclose(temp);    fclose(pre);
 
 }
+int find2(char * address , char * pattern,int number)// number = 1 for simple find
+{
+    char * strcopy = (char *)malloc(strlen(pattern));
+    int j =0 ;
+    int star_pos = -1;
+    for(int i=0 ; i<strlen(pattern)+1 ; i++)
+    {
+        if(pattern[i]=='\\' && pattern[i+1]=='*')
+        {
+            strcopy[j]  = '*';
+            i++;
+        }
+        else if(pattern[i]=='*' &&( i==1 || pattern[i-1]!='\\') )
+        {
+            strcopy[j] = '*';
+            star_pos = j;
+
+        }
+        else
+        {
+            strcopy[j] = pattern[i];
+        }
+        j++;
+    }
+
+
+    if(star_pos==-1)
+    {
+        char * str = strcopy;
+        int str_lenght = strlen(str);
+        FILE * file = fopen(address,"r");
+        char * a_line = (char*)malloc(1000000*sizeof(char));
+
+        int char_before = 0;
+        int main_result = -1;
+        int counter = 0;
+        while(fgets(a_line,1000000,file) != NULL)
+        {
+            int line_lenght = strlen(a_line);
+            int result = -1;
+            int flag = 0;
+
+            for(int i= 0 ; i<line_lenght ; i++)
+            {
+                if(flag+counter == number)
+                {
+                    break;
+                }
+
+                int comp_result = strcmp2(a_line+i,str,str_lenght);
+                if(comp_result==1)
+                {
+                    result = i;
+                    flag ++ ;
+                }
+                else if(comp_result == -1)
+                {
+                    break;
+                }
+
+            }
+
+            counter += flag;
+            if(counter==number)
+            {
+                main_result = char_before + result;
+                break;
+            }
+
+            char_before +=line_lenght;
+        }
+
+        fclose(file);
+
+        return main_result;
+    }
+
+    else
+    {
+        /*
+        char * str = strcopy;
+        int str_lenght = strlen(str);
+        FILE * file = fopen(address,"r");
+        char * a_line = (char*)malloc(1000000*sizeof(char));
+        int word_number = 1 + count_space(str);
+
+       // printf("%d ",word_number);
+
+        int char_before = 0;
+        int main_result = -1;
+        int counter = 0;
+        while(fgets(a_line,1000000,file) != NULL)
+        {
+            int line_lenght = strlen(a_line);
+           // printf("line_lenght %d ",line_lenght);
+            int result = -1;
+            int flag = 0;
+            //printf("%d",count_space(a_line)+1);
+
+            for(int k= 0 ; k<line_lenght ; k++)
+            {
+
+                //printf("k : %d , flag : %d \n",k,flag);
+                if (flag+counter == number )
+                {
+
+                    //else{
+                        break;
+                   // }
+                }
+
+                int line_word_number = 1+ count_space(a_line+k);
+                if(line_word_number < word_number)
+                {
+                    break;
+                }
+
+                int index = 0;
+                char flag2 = 1;
+                for(int i=1 ; i<= word_number; i++)
+                {
+                    if(flag2 == 0)
+                    {
+                        break;
+                    }
+                    char * pattern_word ;
+                    pattern_word = nth_word(str,i);
+                    char * line_word = nth_word(a_line+k,i);
+                    line_word = nth_word(a_line+k,i);
+
+                    //printf("%s  %s\n",pattern_word,line_word);
+
+
+                    if( index == star_pos)
+                    {
+                        if(strcmp_beginning_with_star2(pattern_word,line_word)==0)
+                        {
+                            flag2 = 0;
+                        }
+                    }
+                    else if(index + strlen(pattern_word)-1 == star_pos)
+                    {
+                        //bstar = 1;
+                            //printf("k: %d i: %d flag2 : %d a_line : %s\n",k,i,flag2,a_line+k);
+                        if(strcmp_ending_with_star2(pattern_word,line_word)==0)
+                        {
+                            flag2 = 0;
+                        }
+
+                    }
+                    else
+                    {
+                        if(strcmp2(pattern_word,line_word,strlen(pattern_word))!=1)
+                        {
+                            flag2 = 0;
+                        }
+                        if(strlen(pattern_word)==0 && strlen(line_word)==0)
+                        {
+                            flag2 = 1;
+                        }
+
+                    }
+                    index += strlen(pattern_word)+1;
+                }
+                //printf("%s %d\n",a_line+k,k);
+                if (flag2 == 1)
+                {
+                    flag++;
+                    result = k;
+                }
+            }
+            counter += flag;
+            if(counter == number)
+            {
+                main_result = char_before + result;
+                break;
+            }
+
+            char_before += line_lenght;
+
+
+        fclose(file);
+
+        return main_result;
+        */
+        return -1;
+    }
+}
+int count_space(char * str) // word number == space +1 ; " " -> "" , "";
+{
+    int counter =0 ;
+    for(int i=0 ; str[i]!='\0' ; i++)
+    {
+        if (str[i]==' ')
+        {
+            counter++;
+        }
+    }
+    return counter;
+}
+char strcmp_beginning_with_star2(char * str1 , char * str2)//first string has *
+{
+    str1++;
+    int pattern_size = strlen(str1);
+    int str2_size    = strlen(str2);
+    if(strcmp2(str2,str1,pattern_size)==1)
+    {
+        return 1;
+    }
+    else
+    {
+        return 0;
+    }
+}
+char strcmp_ending_with_star2(char * str1 , char * str2)//first string has *
+{
+    int size = strlen(str1) -1;
+    if(strcmp2(str1,str2,size) == 1)
+    {
+        return 1;
+    }
+    else
+    {
+        return 0;
+    }
+}
+int contvert2byword(int index ,char *address)
+{
+    FILE * file = fopen(address,"r");
+    int result = 0;
+    char ch;
+    for(int i=0 ; i<index ; i++)
+    {
+        ch = fgetc(file);
+        if(ch == '\0')
+        {
+            break;
+        }
+        if (ch==' ' )
+        {
+            result++;
+        }
+    }
+    fclose(file);
+    return result;
+
+}
+int * find_all(char * address , char * pattern)
+{
+    int * result = (int*)malloc(1000000);
+    int a;
+    int i = 0;
+    do
+    {
+        a = find2(address,pattern,i+1);
+        printf("(%d,%d)",a,i);
+        result[i] = a;
+        i++;
+    }
+    while (a!=-1);
+    return result;
+
+
+/*
+    char * ch = (char*)malloc(100000);
+    gets(ch);
+    ch = convert_input_str(ch);
+
+    int * result = find_all("root/test.txt",ch);
+    int i = 0;
+    while(result[i]!=-1)
+    {
+        printf("%d ",result[i]);
+        i++;
+    }
+*/
+}
+char replace(char * address , char * pattern ,char * str, int number) // return 1 for success and 0 for failure
+{
+    int a = find2(address,pattern,number);
+    if (a==-1)
+    {
+        return 0;
+    }
+    else
+    {
+        int lenght = strlen(pattern);
+        remove_by_pos(address,a,lenght,'f');
+        insert_by_pos(address,a,str);
+        return 1;
+    }
+
+
+}
+void remove_by_pos(char* address ,int pos ,int size , char direction )
+{
+    backup_a_file(address);
+    FILE * file1 = fopen(address,"r");
+    FILE * file2 = fopen("./temp/temp_remove.txt","w");
+    int char_before_removing = pos;
+    char ch;
+    while((ch=fgetc(file1))!=EOF)
+    {
+        fprintf(file2,"%c",ch);
+    }
+    if(direction == 'b')
+    {
+        char_before_removing -= size;
+    }
+    char_before_removing++;
+    fclose(file1); fclose(file2);
+
+    FILE * file3 = fopen(address,"w");
+    FILE * file4 = fopen("./temp/temp_remove.txt","r");
+
+    int i=1;
+    while ((ch=fgetc(file4)) != EOF)
+    {
+        if(char_before_removing == i)
+        {
+            for(int j=0 ; j<size ;j++)
+            {
+                ch = fgetc(file4);
+            }
+        }
+        i++;
+        if(ch==EOF)
+            break;
+        fprintf(file3,"%c",ch);
+    }
+    fclose(file3); fclose(file4);
+
+}//remove_by_index("./root/test_insert.txt",1,1,1,'b');
+void insert_by_pos(char * address, int pos,char * inserting_str) // must first convert the input string
+{
+    backup_a_file(address);
+    FILE * file1 = fopen(address,"r");
+    FILE * file2 = fopen("./temp/temp_insert.txt","w");
+    //char * inserting_str = convert_input_str(inserting_str0);
+    char ch;
+    int line=1 ;
+    int i =0 ;
+    int is_inserted = 0;
+    while ((ch=fgetc(file1)) != EOF)
+    {
+        if(i == pos && is_inserted == 0)
+        {
+            fprintf(file2,"%s",inserting_str);
+            is_inserted =1 ;
+        }
+        if(ch=='\n')
+        {
+            line++;
+        }
+        i++;
+        fprintf(file2,"%c",ch);
+    }
+    if(is_inserted == 0)
+    {
+
+
+        fprintf(file2,"%s",inserting_str);
+    }
+    fclose(file1); fclose(file2); // roy file 2 mohtava ye asli ro neveshtam
+
+    FILE * file3 = fopen(address,"w");
+    FILE * file4 = fopen("./temp/temp_insert.txt","r");
+
+    while ((ch=fgetc(file4)) != EOF)
+    {
+        fprintf(file3,"%c",ch);
+    }
+    fclose(file3); fclose(file4);
+}//insert("./root/test2.txt",1,0,"\nsalam ino insert kardam\n ");
+char replace_all(char * address , char * pattern ,char * str)
+{
+    int i=0;
+    while(1){
+        int a = find2(address,pattern,1);
+        if (a==-1)
+        {
+            return (i!=0);
+        }
+        else
+        {
+            int lenght = strlen(pattern);
+            remove_by_pos(address,a,lenght,'f');
+            insert_by_pos(address,a,str);
+            //return 1;
+        }
+        i++;
+    }
+
+
+}
+
