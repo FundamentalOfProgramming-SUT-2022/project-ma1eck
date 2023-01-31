@@ -17,14 +17,6 @@
 /*
 to do list :
 
-1) bayad bebinam function haii ke output daran ro che konam :
-- read_file    : return a string
-- line_compare : printf
-- find
-- grep
- - simple
- - l
-- tree : instead of printf , write in file
 
 2) invalid inputs
 - file's existence
@@ -47,6 +39,16 @@ some notes for using this program
 
 - when I get string from user first convert the input string before passing it to "find" and "insert"
 
+
+*/
+
+/*
+nomre :
+wildcard nazadam -50
+copy matn boland +20
+auto indent chand khati + 30
+
+arman ro bray har dastor momkene neveshtam
 
 */
 
@@ -86,9 +88,29 @@ char strcmp_ending_with_star2(char * str1 , char * str2);//first string has *
 int contvert2byword(int index ,char *str);
 int * find_all(char * address , char * pattern);
 char replace(char * address , char * pattern ,char * str, int number); // number = 1 for simple replace
-void remove_by_pos(char* address ,int pos ,int size , char direction );
-void insert_by_pos(char * address, int pos,char * inserting_str); // must first convert the input string
+void remove_by_pos_for_replace(char* address ,int pos ,int size , char direction );
+void insert_by_pos_for_replace(char * address, int pos,char * inserting_str); // must first convert the input string
 char replace_all(char * address , char * pattern ,char * str);
+void cat_print(char * address); // this is a valid address
+
+
+//--------------------------------------arman--------------------------------------------------
+void insert_input_arman(char * address,int line_number , int start_pos,char * input_file_address); // must first convert the input string
+int find2_output_arman(char * address , char * pattern,int number);// number = 1 for simple find
+int find2_input_arman(char * address , char * pattern_address,int number);// number = 1 for simple find
+int * find_all_output_arman(char * address , char * pattern);
+int * find_all_input_arman(char * address , char * pattern_address);
+char replace_input_arman(char * address , char * pattern_address ,char * str, int number); // return 1 for success and 0 for failure
+char replace_all_input_arman(char * address , char * pattern_address ,char * str);
+void tree_output_arman(char * path, int depth_level , int final_depth );
+char tree_output_arman_komaki(char * path, int depth_level , int final_depth , FILE * file);
+void simple_grep_input_arman(char * str_address ,int n ,char * addresses[n]); // n : number of files
+void simple_grep_output_arman(char * str ,int n ,char * addresses[n]); // n : number of files
+void l_grep_input_arman(char * str_address , int n , char * addresses[n]);
+void l_grep_output_arman(char * str , int n , char * addresses[n]);
+int count_grep_input_arman  (char * str_address ,int n ,char * addresses[n]);
+int count_grep_output_arman  (char * str ,int n ,char * addresses[n]);
+void line_compare_output_arman(char * address1 , char * address2);
 
 
 
@@ -101,11 +123,10 @@ int main()
 {
     initialize();
 
-    char * ch = (char*)malloc(100000);
-    gets(ch);
-    ch = convert_input_str(ch);
-
-    printf("%d",replace_all("root/test.txt",ch,"chekoty"));
+    char *ch = (char * )malloc(100);
+    //gets(ch);
+    //ch = convert_input_str(ch);
+    //line_compare_output_arman("./root/test2.txt","./root/test.txt");
 
     return 0;
 }
@@ -1378,7 +1399,7 @@ void undo(char * address)
     char * path = (char*)malloc(1000000);
     strcpy(path,"./pre");
     strcat(path,address+i);
-    printf("%s\n",path);
+    //printf("%s\n",path);
 
     FILE * temp = fopen("./temp/undo_temp.txt","w");
     FILE * file = fopen(address,"r");
@@ -1670,7 +1691,7 @@ int * find_all(char * address , char * pattern)
     do
     {
         a = find2(address,pattern,i+1);
-        printf("(%d,%d)",a,i);
+        //printf("(%d,%d)",a,i);
         result[i] = a;
         i++;
     }
@@ -1694,6 +1715,7 @@ int * find_all(char * address , char * pattern)
 }
 char replace(char * address , char * pattern ,char * str, int number) // return 1 for success and 0 for failure
 {
+    backup_a_file(address);
     int a = find2(address,pattern,number);
     if (a==-1)
     {
@@ -1702,16 +1724,16 @@ char replace(char * address , char * pattern ,char * str, int number) // return 
     else
     {
         int lenght = strlen(pattern);
-        remove_by_pos(address,a,lenght,'f');
-        insert_by_pos(address,a,str);
+        remove_by_pos_for_replace(address,a,lenght,'f');
+        insert_by_pos_for_replace(address,a,str);
         return 1;
     }
 
 
 }
-void remove_by_pos(char* address ,int pos ,int size , char direction )
+void remove_by_pos_for_replace(char* address ,int pos ,int size , char direction )
 {
-    backup_a_file(address);
+    //backup_a_file(address);
     FILE * file1 = fopen(address,"r");
     FILE * file2 = fopen("./temp/temp_remove.txt","w");
     int char_before_removing = pos;
@@ -1748,9 +1770,9 @@ void remove_by_pos(char* address ,int pos ,int size , char direction )
     fclose(file3); fclose(file4);
 
 }//remove_by_index("./root/test_insert.txt",1,1,1,'b');
-void insert_by_pos(char * address, int pos,char * inserting_str) // must first convert the input string
+void insert_by_pos_for_replace(char * address, int pos,char * inserting_str) // must first convert the input string
 {
-    backup_a_file(address);
+    //backup_a_file(address);
     FILE * file1 = fopen(address,"r");
     FILE * file2 = fopen("./temp/temp_insert.txt","w");
     //char * inserting_str = convert_input_str(inserting_str0);
@@ -1791,6 +1813,7 @@ void insert_by_pos(char * address, int pos,char * inserting_str) // must first c
 }//insert("./root/test2.txt",1,0,"\nsalam ino insert kardam\n ");
 char replace_all(char * address , char * pattern ,char * str)
 {
+    backup_a_file(address);
     int i=0;
     while(1){
         int a = find2(address,pattern,1);
@@ -1801,8 +1824,8 @@ char replace_all(char * address , char * pattern ,char * str)
         else
         {
             int lenght = strlen(pattern);
-            remove_by_pos(address,a,lenght,'f');
-            insert_by_pos(address,a,str);
+            remove_by_pos_for_replace(address,a,lenght,'f');
+            insert_by_pos_for_replace(address,a,str);
             //return 1;
         }
         i++;
@@ -1810,4 +1833,1089 @@ char replace_all(char * address , char * pattern ,char * str)
 
 
 }
+void cat_print(char * address) // this is a valid address
+{
+    char ch;
+    FILE * file = fopen(address,"r");
+    do {
+        ch = fgetc(file);
+        printf("%c",ch);
+    } while (ch != EOF);
+    fclose(file);
+
+}
+
+//---------------------------------------arman-------------------------------------------------------------------------------------------------
+void insert_input_arman(char * address,int line_number , int start_pos,char * input_file_address) // must first convert the input string
+{
+    backup_a_file(address);
+    FILE * file1 = fopen(address,"r");
+    FILE * file2 = fopen("./temp/temp_insert.txt","w");
+    //char * inserting_str = convert_input_str(inserting_str0);
+    char ch;
+    int line=1 ;
+    int is_inserted = 0;
+    while ((ch=fgetc(file1)) != EOF)
+    {
+        if(line == line_number && is_inserted == 0)
+        {
+            for(int pos =0 ; pos< start_pos ; pos++)
+            {
+                fprintf(file2,"%c",ch);
+                ch = fgetc(file1);
+            }
+            FILE * file3 = fopen(input_file_address,"r");
+            char ch1=fgetc(file3) ;
+            while(ch1!=EOF)
+            {
+                fprintf(file2,"%c",ch1);
+                ch1=fgetc(file3);
+            }
+            fclose(file3);
+            is_inserted =1 ;
+        }
+        if(ch=='\n')
+        {
+            line++;
+        }
+        fprintf(file2,"%c",ch);
+    }
+    if(is_inserted == 0)
+    {
+
+        if(line<line_number)
+        {
+            fprintf(file2,"\n");
+        }
+            FILE * file3 = fopen(input_file_address,"r");
+            char ch1=fgetc(file3) ;
+            while(ch1!=EOF)
+            {
+                fprintf(file2,"%c",ch1);
+                ch1=fgetc(file3);
+            }
+            fclose(file3);
+    }
+    fclose(file1); fclose(file2); // roy file 2 mohtava ye asli ro neveshtam
+
+    FILE * file3 = fopen(address,"w");
+    FILE * file4 = fopen("./temp/temp_insert.txt","r");
+
+    while ((ch=fgetc(file4)) != EOF)
+    {
+        fprintf(file3,"%c",ch);
+    }
+    fclose(file3); fclose(file4);
+}//insert("./root/test2.txt",1,0,"\nsalam ino insert kardam\n ");
+int find2_output_arman(char * address , char * pattern,int number)// number = 1 for simple find
+{
+    char * strcopy = (char *)malloc(strlen(pattern));
+    int j =0 ;
+    int star_pos = -1;
+    for(int i=0 ; i<strlen(pattern)+1 ; i++)
+    {
+        if(pattern[i]=='\\' && pattern[i+1]=='*')
+        {
+            strcopy[j]  = '*';
+            i++;
+        }
+        else if(pattern[i]=='*' &&( i==1 || pattern[i-1]!='\\') )
+        {
+            strcopy[j] = '*';
+            star_pos = j;
+
+        }
+        else
+        {
+            strcopy[j] = pattern[i];
+        }
+        j++;
+    }
+
+
+    if(star_pos==-1)
+    {
+        char * str = strcopy;
+        int str_lenght = strlen(str);
+        FILE * file = fopen(address,"r");
+        char * a_line = (char*)malloc(1000000*sizeof(char));
+
+        int char_before = 0;
+        int main_result = -1;
+        int counter = 0;
+        while(fgets(a_line,1000000,file) != NULL)
+        {
+            int line_lenght = strlen(a_line);
+            int result = -1;
+            int flag = 0;
+
+            for(int i= 0 ; i<line_lenght ; i++)
+            {
+                if(flag+counter == number)
+                {
+                    break;
+                }
+
+                int comp_result = strcmp2(a_line+i,str,str_lenght);
+                if(comp_result==1)
+                {
+                    result = i;
+                    flag ++ ;
+                }
+                else if(comp_result == -1)
+                {
+                    break;
+                }
+
+            }
+
+            counter += flag;
+            if(counter==number)
+            {
+                main_result = char_before + result;
+                break;
+            }
+
+            char_before +=line_lenght;
+        }
+
+        fclose(file);
+
+        FILE * file22 = fopen("./temp/temp_arman.txt","w");
+        fprintf(file22,"%d",main_result);
+        fclose(file22);
+        return main_result;
+    }
+
+    else
+    {
+        /*
+        char * str = strcopy;
+        int str_lenght = strlen(str);
+        FILE * file = fopen(address,"r");
+        char * a_line = (char*)malloc(1000000*sizeof(char));
+        int word_number = 1 + count_space(str);
+
+       // printf("%d ",word_number);
+
+        int char_before = 0;
+        int main_result = -1;
+        int counter = 0;
+        while(fgets(a_line,1000000,file) != NULL)
+        {
+            int line_lenght = strlen(a_line);
+           // printf("line_lenght %d ",line_lenght);
+            int result = -1;
+            int flag = 0;
+            //printf("%d",count_space(a_line)+1);
+
+            for(int k= 0 ; k<line_lenght ; k++)
+            {
+
+                //printf("k : %d , flag : %d \n",k,flag);
+                if (flag+counter == number )
+                {
+
+                    //else{
+                        break;
+                   // }
+                }
+
+                int line_word_number = 1+ count_space(a_line+k);
+                if(line_word_number < word_number)
+                {
+                    break;
+                }
+
+                int index = 0;
+                char flag2 = 1;
+                for(int i=1 ; i<= word_number; i++)
+                {
+                    if(flag2 == 0)
+                    {
+                        break;
+                    }
+                    char * pattern_word ;
+                    pattern_word = nth_word(str,i);
+                    char * line_word = nth_word(a_line+k,i);
+                    line_word = nth_word(a_line+k,i);
+
+                    //printf("%s  %s\n",pattern_word,line_word);
+
+
+                    if( index == star_pos)
+                    {
+                        if(strcmp_beginning_with_star2(pattern_word,line_word)==0)
+                        {
+                            flag2 = 0;
+                        }
+                    }
+                    else if(index + strlen(pattern_word)-1 == star_pos)
+                    {
+                        //bstar = 1;
+                            //printf("k: %d i: %d flag2 : %d a_line : %s\n",k,i,flag2,a_line+k);
+                        if(strcmp_ending_with_star2(pattern_word,line_word)==0)
+                        {
+                            flag2 = 0;
+                        }
+
+                    }
+                    else
+                    {
+                        if(strcmp2(pattern_word,line_word,strlen(pattern_word))!=1)
+                        {
+                            flag2 = 0;
+                        }
+                        if(strlen(pattern_word)==0 && strlen(line_word)==0)
+                        {
+                            flag2 = 1;
+                        }
+
+                    }
+                    index += strlen(pattern_word)+1;
+                }
+                //printf("%s %d\n",a_line+k,k);
+                if (flag2 == 1)
+                {
+                    flag++;
+                    result = k;
+                }
+            }
+            counter += flag;
+            if(counter == number)
+            {
+                main_result = char_before + result;
+                break;
+            }
+
+            char_before += line_lenght;
+
+
+        fclose(file);
+
+        return main_result;
+        */
+        return -1;
+    }
+}
+int find2_input_arman(char * address , char * pattern_address,int number)// number = 1 for simple find
+{
+    FILE * file_temp = fopen(pattern_address,"r");
+    char * pattern = (char *)malloc(1000000);
+    int i_temp = 0;
+    int n_temp = 1;
+    char ch_temp = fgetc(file_temp);
+    while(ch_temp!=EOF)
+    {
+        if(i_temp%1000000==0 && i_temp!=0)
+        {
+            pattern = (char *)realloc((void*)pattern,n_temp*1000000);
+            n_temp++;
+        }
+        pattern[i_temp] = ch_temp;
+        i_temp++;
+        ch_temp = fgetc(file_temp);
+    }
+    pattern[i_temp] = '\0';
+    fclose(file_temp);
+
+    char * strcopy = (char *)malloc(strlen(pattern));
+    int j =0 ;
+    int star_pos = -1;
+    for(int i=0 ; i<strlen(pattern)+1 ; i++)
+    {
+        if(pattern[i]=='\\' && pattern[i+1]=='*')
+        {
+            strcopy[j]  = '*';
+            i++;
+        }
+        else if(pattern[i]=='*' &&( i==1 || pattern[i-1]!='\\') )
+        {
+            strcopy[j] = '*';
+            star_pos = j;
+
+        }
+        else
+        {
+            strcopy[j] = pattern[i];
+        }
+        j++;
+    }
+
+
+    if(star_pos==-1)
+    {
+        char * str = strcopy;
+        int str_lenght = strlen(str);
+        FILE * file = fopen(address,"r");
+        char * a_line = (char*)malloc(1000000*sizeof(char));
+
+        int char_before = 0;
+        int main_result = -1;
+        int counter = 0;
+        while(fgets(a_line,1000000,file) != NULL)
+        {
+            int line_lenght = strlen(a_line);
+            int result = -1;
+            int flag = 0;
+
+            for(int i= 0 ; i<line_lenght ; i++)
+            {
+                if(flag+counter == number)
+                {
+                    break;
+                }
+
+                int comp_result = strcmp2(a_line+i,str,str_lenght);
+                if(comp_result==1)
+                {
+                    result = i;
+                    flag ++ ;
+                }
+                else if(comp_result == -1)
+                {
+                    break;
+                }
+
+            }
+
+            counter += flag;
+            if(counter==number)
+            {
+                main_result = char_before + result;
+                break;
+            }
+
+            char_before +=line_lenght;
+        }
+
+        fclose(file);
+
+        return main_result;
+    }
+
+    else
+    {
+        /*
+        char * str = strcopy;
+        int str_lenght = strlen(str);
+        FILE * file = fopen(address,"r");
+        char * a_line = (char*)malloc(1000000*sizeof(char));
+        int word_number = 1 + count_space(str);
+
+       // printf("%d ",word_number);
+
+        int char_before = 0;
+        int main_result = -1;
+        int counter = 0;
+        while(fgets(a_line,1000000,file) != NULL)
+        {
+            int line_lenght = strlen(a_line);
+           // printf("line_lenght %d ",line_lenght);
+            int result = -1;
+            int flag = 0;
+            //printf("%d",count_space(a_line)+1);
+
+            for(int k= 0 ; k<line_lenght ; k++)
+            {
+
+                //printf("k : %d , flag : %d \n",k,flag);
+                if (flag+counter == number )
+                {
+
+                    //else{
+                        break;
+                   // }
+                }
+
+                int line_word_number = 1+ count_space(a_line+k);
+                if(line_word_number < word_number)
+                {
+                    break;
+                }
+
+                int index = 0;
+                char flag2 = 1;
+                for(int i=1 ; i<= word_number; i++)
+                {
+                    if(flag2 == 0)
+                    {
+                        break;
+                    }
+                    char * pattern_word ;
+                    pattern_word = nth_word(str,i);
+                    char * line_word = nth_word(a_line+k,i);
+                    line_word = nth_word(a_line+k,i);
+
+                    //printf("%s  %s\n",pattern_word,line_word);
+
+
+                    if( index == star_pos)
+                    {
+                        if(strcmp_beginning_with_star2(pattern_word,line_word)==0)
+                        {
+                            flag2 = 0;
+                        }
+                    }
+                    else if(index + strlen(pattern_word)-1 == star_pos)
+                    {
+                        //bstar = 1;
+                            //printf("k: %d i: %d flag2 : %d a_line : %s\n",k,i,flag2,a_line+k);
+                        if(strcmp_ending_with_star2(pattern_word,line_word)==0)
+                        {
+                            flag2 = 0;
+                        }
+
+                    }
+                    else
+                    {
+                        if(strcmp2(pattern_word,line_word,strlen(pattern_word))!=1)
+                        {
+                            flag2 = 0;
+                        }
+                        if(strlen(pattern_word)==0 && strlen(line_word)==0)
+                        {
+                            flag2 = 1;
+                        }
+
+                    }
+                    index += strlen(pattern_word)+1;
+                }
+                //printf("%s %d\n",a_line+k,k);
+                if (flag2 == 1)
+                {
+                    flag++;
+                    result = k;
+                }
+            }
+            counter += flag;
+            if(counter == number)
+            {
+                main_result = char_before + result;
+                break;
+            }
+
+            char_before += line_lenght;
+
+
+        fclose(file);
+
+        return main_result;
+        */
+        return -1;
+    }
+}
+int * find_all_output_arman(char * address , char * pattern)
+{
+    int * result = (int*)malloc(1000000);
+    int a;
+    int i = 0;
+    do
+    {
+        a = find2(address,pattern,i+1);
+       // printf("(%d,%d)",a,i);
+        result[i] = a;
+        i++;
+    }
+    while (a!=-1);
+
+    FILE * file_temp = fopen("./temp/temp_arman.txt","w");
+    i = 0;
+    while(result[i]!=-1)
+    {
+        fprintf(file_temp,"%d ",result[i]);
+        i++;
+    }
+    fclose(file_temp);
+
+    return result;
+
+
+}
+int * find_all_input_arman(char * address , char * pattern_address)
+{
+    int * result = (int*)malloc(1000000);
+    int a;
+    int i = 0;
+    do
+    {
+        a = find2_input_arman(address,pattern_address,i+1);
+       // printf("(%d,%d)",a,i);
+        result[i] = a;
+        i++;
+    }
+    while (a!=-1);
+    return result;
+
+
+/*
+    char * ch = (char*)malloc(100000);
+    gets(ch);
+    ch = convert_input_str(ch);
+
+    int * result = find_all("root/test.txt",ch);
+    int i = 0;
+    while(result[i]!=-1)
+    {
+        printf("%d ",result[i]);
+        i++;
+    }
+*/
+}
+char replace_input_arman(char * address , char * pattern_address ,char * str, int number) // return 1 for success and 0 for failure
+{
+    FILE * file_temp = fopen(pattern_address,"r");
+    char * pattern = (char *)malloc(1000000);
+    int i_temp = 0;
+    int n_temp = 1;
+    char ch_temp = fgetc(file_temp);
+    while(ch_temp!=EOF)
+    {
+        if(i_temp%1000000==0 && i_temp!=0)
+        {
+            pattern = (char *)realloc((void*)pattern,n_temp*1000000);
+            n_temp++;
+        }
+        pattern[i_temp] = ch_temp;
+        i_temp++;
+        ch_temp = fgetc(file_temp);
+    }
+    pattern[i_temp] = '\0';
+    fclose(file_temp);
+
+    backup_a_file(address);
+    int a = find2(address,pattern,number);
+    if (a==-1)
+    {
+        return 0;
+    }
+    else
+    {
+        int lenght = strlen(pattern);
+        remove_by_pos_for_replace(address,a,lenght,'f');
+        insert_by_pos_for_replace(address,a,str);
+        return 1;
+    }
+
+
+}
+char replace_all_input_arman(char * address , char * pattern_address ,char * str)
+{
+    FILE * file_temp = fopen(pattern_address,"r");
+    char * pattern = (char *)malloc(1000000);
+    int i_temp = 0;
+    int n_temp = 1;
+    char ch_temp = fgetc(file_temp);
+    while(ch_temp!=EOF)
+    {
+        if(i_temp%1000000==0 && i_temp!=0)
+        {
+            pattern = (char *)realloc((void*)pattern,n_temp*1000000);
+            n_temp++;
+        }
+        pattern[i_temp] = ch_temp;
+        i_temp++;
+        ch_temp = fgetc(file_temp);
+    }
+    pattern[i_temp] = '\0';
+    fclose(file_temp);
+
+    backup_a_file(address);
+    int i=0;
+    while(1){
+        int a = find2(address,pattern,1);
+        if (a==-1)
+        {
+            return (i!=0);
+        }
+        else
+        {
+            int lenght = strlen(pattern);
+            remove_by_pos_for_replace(address,a,lenght,'f');
+            insert_by_pos_for_replace(address,a,str);
+            //return 1;
+        }
+        i++;
+    }
+}
+void simple_grep_input_arman(char * str_address ,int n ,char * addresses[n]) // n : number of files
+{
+    FILE * file_temp = fopen(str_address,"r");
+    char * str = (char *)malloc(1000000);
+    int i_temp = 0;
+    int n_temp = 1;
+    char ch_temp = fgetc(file_temp);
+    while(ch_temp!=EOF)
+    {
+        if(i_temp%1000000==0 && i_temp!=0)
+        {
+            str = (char *)realloc((void*)str,n_temp*1000000);
+            n_temp++;
+        }
+        str[i_temp] = ch_temp;
+        i_temp++;
+        ch_temp = fgetc(file_temp);
+    }
+    str[i_temp] = '\0';
+    fclose(file_temp);
+
+
+    char flag = 0 ;
+    int str_lenght = strlen(str);
+    for(int j=0 ; j<n ; j++ )
+    {
+        FILE * file = fopen(addresses[j],"r");
+        char * a_line = (char*)malloc(1000000*sizeof(char));
+
+        while(fgets(a_line,1000000,file)!= NULL)
+        {
+            int line_lenght = strlen(a_line);
+
+            for(int i= 0 ; i<line_lenght ; i++)
+            {
+                int comp_result = strcmp2(a_line+i,str,str_lenght);
+                if(comp_result==1)
+                {
+                    printf("%s: %s",addresses[j],a_line);
+                    if(a_line[line_lenght-1]!='\n')
+                    {
+                        printf("\n");
+                    }
+                    flag = 1;
+                    break;
+
+                }
+                else if(comp_result == -1)
+                {
+                    break;
+                }
+            }
+
+        }
+        fclose(file);
+    }
+    if(flag == 0)
+    {
+        printf("-1\n");
+    }
+
+}
+void simple_grep_output_arman(char * str ,int n ,char * addresses[n]) // n : number of files
+{
+    FILE * file_temp = fopen("./temp/temp_arman.txt","w");
+    char flag = 0 ;
+    int str_lenght = strlen(str);
+    for(int j=0 ; j<n ; j++ )
+    {
+        FILE * file = fopen(addresses[j],"r");
+        char * a_line = (char*)malloc(1000000*sizeof(char));
+
+        while(fgets(a_line,1000000,file)!= NULL)
+        {
+            int line_lenght = strlen(a_line);
+
+            for(int i= 0 ; i<line_lenght ; i++)
+            {
+                int comp_result = strcmp2(a_line+i,str,str_lenght);
+                if(comp_result==1)
+                {
+                    fprintf(file_temp,"%s: %s",addresses[j],a_line);
+                    if(a_line[line_lenght-1]!='\n')
+                    {
+                        fprintf(file_temp,"\n");
+                    }
+                    flag = 1;
+                    break;
+
+                }
+                else if(comp_result == -1)
+                {
+                    break;
+                }
+            }
+
+        }
+        fclose(file);
+    }
+    if(flag == 0)
+    {
+        fprintf(file_temp,"-1\n");
+    }
+    fclose(file_temp);
+}
+void l_grep_input_arman(char * str_address , int n , char * addresses[n])
+{
+    FILE * file_temp = fopen(str_address,"r");
+    char * str = (char *)malloc(1000000);
+    int i_temp = 0;
+    int n_temp = 1;
+    char ch_temp = fgetc(file_temp);
+    while(ch_temp!=EOF)
+    {
+        if(i_temp%1000000==0 && i_temp!=0)
+        {
+            str = (char *)realloc((void*)str,n_temp*1000000);
+            n_temp++;
+        }
+        str[i_temp] = ch_temp;
+        i_temp++;
+        ch_temp = fgetc(file_temp);
+    }
+    str[i_temp] = '\0';
+    fclose(file_temp);
+
+    char flag = 0 ;
+    int str_lenght = strlen(str);
+    for(int j=0 ; j<n ; j++ )
+    {
+        FILE * file = fopen(addresses[j],"r");
+        char * a_line = (char*)malloc(1000000*sizeof(char));
+
+        char end = 0;
+        while(fgets(a_line,1000000,file)!= NULL && !end)
+        {
+            int line_lenght = strlen(a_line);
+
+            for(int i= 0 ; i<line_lenght ; i++)
+            {
+                int comp_result = strcmp2(a_line+i,str,str_lenght);
+                if(comp_result==1)
+                {
+                    printf("%s\n",addresses[j]);
+                    end = 1;
+                    break;
+
+                }
+                else if(comp_result == -1)
+                {
+                    break;
+                }
+            }
+
+        }
+        fclose(file);
+    }
+}
+void l_grep_output_arman(char * str , int n , char * addresses[n])
+{
+    FILE * file_temp = fopen("./temp/temp_arman.txt","w");
+    char flag = 0 ;
+    int str_lenght = strlen(str);
+    for(int j=0 ; j<n ; j++ )
+    {
+        FILE * file = fopen(addresses[j],"r");
+        char * a_line = (char*)malloc(1000000*sizeof(char));
+
+        char end = 0;
+        while(fgets(a_line,1000000,file)!= NULL && !end)
+        {
+            int line_lenght = strlen(a_line);
+
+            for(int i= 0 ; i<line_lenght ; i++)
+            {
+                int comp_result = strcmp2(a_line+i,str,str_lenght);
+                if(comp_result==1)
+                {
+                    fprintf(file_temp,"%s\n",addresses[j]);
+                    end = 1;
+                    break;
+
+                }
+                else if(comp_result == -1)
+                {
+                    break;
+                }
+            }
+
+        }
+        fclose(file);
+        fclose(file_temp);
+    }
+}
+int count_grep_input_arman  (char * str_address ,int n ,char * addresses[n])
+{
+    FILE * file_temp = fopen(str_address,"r");
+    char * str = (char *)malloc(1000000);
+    int i_temp = 0;
+    int n_temp = 1;
+    char ch_temp = fgetc(file_temp);
+    while(ch_temp!=EOF)
+    {
+        if(i_temp%1000000==0 && i_temp!=0)
+        {
+            str = (char *)realloc((void*)str,n_temp*1000000);
+            n_temp++;
+        }
+        str[i_temp] = ch_temp;
+        i_temp++;
+        ch_temp = fgetc(file_temp);
+    }
+    str[i_temp] = '\0';
+    fclose(file_temp);
+
+
+    int counter = 0 ;
+    int str_lenght = strlen(str);
+    for(int j=0 ; j<n ; j++ )
+    {
+        FILE * file = fopen(addresses[j],"r");
+        char * a_line = (char*)malloc(1000000*sizeof(char));
+
+        while(fgets(a_line,1000000,file)!= NULL)
+        {
+            int line_lenght = strlen(a_line);
+
+            for(int i= 0 ; i<line_lenght ; i++)
+            {
+                int comp_result = strcmp2(a_line+i,str,str_lenght);
+                if(comp_result==1)
+                {
+                    counter++ ;
+                    break;
+
+                }
+                else if(comp_result == -1)
+                {
+                    break;
+                }
+            }
+
+        }
+        fclose(file);
+    }
+    return counter;
+
+}
+int count_grep_output_arman  (char * str ,int n ,char * addresses[n])
+{
+    int counter = 0 ;
+    int str_lenght = strlen(str);
+    for(int j=0 ; j<n ; j++ )
+    {
+        FILE * file = fopen(addresses[j],"r");
+        char * a_line = (char*)malloc(1000000*sizeof(char));
+
+        while(fgets(a_line,1000000,file)!= NULL)
+        {
+            int line_lenght = strlen(a_line);
+
+            for(int i= 0 ; i<line_lenght ; i++)
+            {
+                int comp_result = strcmp2(a_line+i,str,str_lenght);
+                if(comp_result==1)
+                {
+                    counter++ ;
+                    break;
+
+                }
+                else if(comp_result == -1)
+                {
+                    break;
+                }
+            }
+
+        }
+        fclose(file);
+    }
+    FILE * file_temp=fopen("temp/temp_arman.txt","w");
+    fprintf(file_temp,"%d",counter);
+    fclose(file_temp);
+    return counter;
+
+}
+char tree_output_arman_komaki(char * path, int depth_level , int final_depth , FILE * file_temp)
+{
+    if(depth_level == final_depth+1 && final_depth!=-1)
+    {
+        return 0 ;
+    }
+    else if(isDir(path)==0)
+    {
+        return 0 ;
+    }
+    DIR *dir;
+    struct dirent *file;
+
+    dir = opendir(path);
+
+    while((file = readdir(dir))!=NULL)
+    {
+
+        if(file->d_name[0]=='.')
+        {
+            continue;
+        }
+
+        for(int i=0 ; i<depth_level ; i++)
+        {
+            fprintf(file_temp,"|  ");
+        }
+        fprintf(file_temp,"|__%s\n",file->d_name);
+
+        char * file_path = (char *)malloc(1000000);
+        strcpy(file_path,path);
+        if(file_path[strlen(path)-1]!='/')
+        {
+            strcat(file_path,"/");
+        }
+        strcat(file_path,file->d_name);
+        tree_output_arman_komaki(file_path,depth_level+1,final_depth,file_temp);
+
+    }
+
+return 1;
+}//tree("./root/",0,2);
+void tree_output_arman(char * path, int depth_level , int final_depth )
+{
+    FILE * file = fopen("./temp/temp_arman.txt","w");
+    tree_output_arman_komaki(path,depth_level,final_depth,file);
+    fclose(file);
+}
+void line_compare_output_arman(char * address1 , char * address2)
+{
+
+    FILE * file_temp = fopen("./temp/temp_arman.txt","w");
+
+    FILE * file1 = fopen(address1,"r");
+    FILE * file2 = fopen(address2,"r");
+
+    char * str1 = (char*)malloc(1000000*sizeof(char));
+    char * str2 = (char*)malloc(1000000*sizeof(char));
+
+    int finish1 = 0;
+    int finish2 = 0;
+    int line = 1;
+    while (1)
+    {
+        if(fgets(str1,1000000,file1) == NULL)
+        {
+            finish1 = 1;
+        }
+
+        if(fgets(str2,1000000,file2) == NULL)
+        {
+            finish2 = 1;
+        }
+        if(finish1==1 || finish2==1)
+        {
+            break;
+        }
+
+        for(int i=0; i<1000000; i++)
+        {
+            if(str2[i]=='\0'&&str2[i-1]!='\n')
+            {
+                str2[i] = '\n'; str2[i+1] = '\0';
+
+            }
+            if(str2[i] == '\0')
+                break;
+
+        }
+        for(int i=0; i<1000000; i++)
+        {
+            if(str1[i]=='\0'&&str1[i-1]!='\n')
+            {
+                str1[i] = '\n'; str1[i+1] = '\0';
+
+            }
+            if(str1[i] == '\0')
+                break;
+
+        }
+
+        if(strcmp(str1,str2) != 0 )
+        {
+            fprintf(file_temp,"============ #%d ============\n",line);
+            fprintf(file_temp,"%s",str1);
+            fprintf(file_temp,"%s",str2);
+
+        }
+
+        line++;
+    }
+
+    if(finish1==0)
+    {
+        fclose(file2);
+        int start_line = line;
+        int finish_line = line-1;
+        while (!finish1)
+        {
+            if(fgets(str1,1000000,file1) == NULL)
+            {
+                finish1 = 1;
+            }
+            finish_line++;
+        }
+        fclose(file1);
+        fprintf(file_temp,"<<<<<<<<<<<< #%d - #%d<<<<<<<<<<<<\n",start_line,finish_line);
+
+        file1 = fopen(address1,"r");
+        for(int i=1 ;i<start_line ; i++)
+        {
+            fgets(str1,1000000,file1);
+        }
+        for(int i=start_line ;i<=finish_line ; i++)
+        {
+            fgets(str1,1000000,file1);
+            for(int i=0; i<1000000; i++)
+            {
+            if(str1[i]=='\0'&&str1[i-1]!='\n')
+            {
+                str1[i] = '\n'; str1[i+1] = '\0';
+            }
+            if(str1[i] == '\0')
+                break;
+            }
+            fprintf(file_temp,"%s",str1);
+        }
+        fclose(file1);
+        return;
+    }
+    if(finish2==0)
+    {
+        fclose(file1);
+        int start_line = line;
+        int finish_line = line-1;
+        while (!finish2)
+        {
+            if(fgets(str2,1000000,file2) == NULL)
+            {
+                finish2 = 1;
+            }
+            finish_line++;
+        }
+        fclose(file2);
+        fprintf(file_temp,">>>>>>>>>>>> #%d - #%d>>>>>>>>>>>>\n",start_line,finish_line);
+
+        file2 = fopen(address2,"r");
+        for(int i=1 ;i<start_line ; i++)
+        {
+            fgets(str2,1000000,file2);
+        }
+        for(int i=start_line ;i<=finish_line ; i++)
+        {
+            fgets(str2,1000000,file2);
+            for(int i=0; i<1000000; i++)
+            {
+            if(str2[i]=='\0'&&str2[i-1]!='\n')
+            {
+                str2[i] = '\n'; str2[i+1] = '\0';
+            }
+            if(str2[i] == '\0')
+                break;
+            }
+            fprintf(file_temp,"%s",str2);
+        }
+        fclose(file2);
+        return;
+    }
+
+
+    fclose(file1);  fclose(file2);
+    fclose(file_temp);
+}//line_compare("./root/test2.txt","./root/test.txt");
+
+
 
