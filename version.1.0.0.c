@@ -13,14 +13,13 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
+#include <dirent.h>
+#include <errno.h>
 
 /*
 to do list :
 
 
-2) invalid inputs
-- file's existence
-- folder's existence
 
 3) wildcard of find
 - simple find -> ending with *
@@ -28,8 +27,6 @@ to do list :
 
 find function is not finished
 
-4)errors
-- insert : when line and pos are not valid
 
 
 */
@@ -37,8 +34,7 @@ find function is not finished
 /*
 some notes for using this program
 
-- when I get string from user first convert the input string before passing it to "find" and "insert"
-
+- grep has a bug that end the program for this input : grep -l --str "ssfa" --files root/test.txt "root/fil e.txt"
 
 */
 
@@ -47,6 +43,7 @@ nomre :
 wildcard nazadam -50
 copy matn boland +20
 auto indent chand khati + 30
+find & replace chand khati
 
 arman ro bray har dastor momkene neveshtam
 
@@ -85,7 +82,7 @@ int count_space(char * str);
 int find2(char * address , char * pattern,int number);
 char strcmp_beginning_with_star2(char * str1 , char * str2);//first string has *
 char strcmp_ending_with_star2(char * str1 , char * str2);//first string has *
-int contvert2byword(int index ,char *str);
+int convert2byword(int index ,char *str);
 int * find_all(char * address , char * pattern);
 char replace(char * address , char * pattern ,char * str, int number); // number = 1 for simple replace
 void remove_by_pos_for_replace(char* address ,int pos ,int size , char direction );
@@ -111,8 +108,1735 @@ void l_grep_output_arman(char * str , int n , char * addresses[n]);
 int count_grep_input_arman  (char * str_address ,int n ,char * addresses[n]);
 int count_grep_output_arman  (char * str ,int n ,char * addresses[n]);
 void line_compare_output_arman(char * address1 , char * address2);
+//---------------------------------------------------------------
+char * convert_input_address(char * str);
+char check_folder_address(char * address);
+char check_file_address(char* address);
+char * first_str(char*str);
+char * first_str2(char*str);
+int count_in_str(char * str , char ch);
+char check_address(char * address);
 
 
+
+
+void master()
+{
+    char * input = (char* )malloc(100000);
+    while (1)
+    {
+        gets(input);
+        char * command = nth_word(input,1);
+
+        // without arman
+
+        if(strcmp(command,"createfile")==0) // createfile --file /root/dir1/dir2/file.txt
+        {
+            char * address = (char*)malloc(100000);
+            int word_number = count_space(input) + 1 ;
+            strcpy(address,nth_word(input,3));
+            for(int i=4 ; i<= word_number ; i++)
+            {
+                strcat(address," ");
+                strcat(address,nth_word(input,i));
+            }
+            int address_lenght = strlen(address);
+            if(word_number!=3)
+            {
+                address++;
+                address[address_lenght-1] = '\0';
+            }
+            address_lenght = strlen(address);
+            if(address[address_lenght-1]=='"')
+            {
+                address[address_lenght-1] = '\0';
+            }
+            int flag = 0 ;
+            for(int i=0; i<10 ; i++)
+            {
+                if(address[i]=='r')
+                {
+                    flag= i ;
+                    break;
+                }
+            }
+            address += flag;
+            address = convert_input_address(address);
+            char * temp  = (char*)malloc(strlen(address));
+            flag = 0;
+            for(int i=0 ; i<strlen(address); i++)
+            {
+                if(address[i]=='/')
+                    flag = i;
+                temp[i] = address[i];
+            }
+            temp[flag] = '\0';
+            //printf("%s \n",temp);
+            create_folder(temp);
+            create_file(address);
+            //printf("%s\n",address);
+            printf("done\n");
+        }
+        else if(strcmp(command,"insertstr")==0) // insertstr --file /root/dir1/dir2/file.txt --str Salam –pos 2:5
+        {
+            char * address = (char*)malloc(100000);
+            int word_number = count_space(input) + 1 ;
+            strcpy(address,nth_word(input,3));
+            for(int i=4 ; i<= word_number ; i++)
+            {
+                strcat(address," ");
+                strcat(address,nth_word(input,i));
+            }
+            int address_lenght = strlen(address);
+
+            address_lenght = strlen(address);
+            if(address[address_lenght-1]=='"')
+            {
+                address[address_lenght-1] = '\0';
+            }
+            int flag = 0 ;
+            for(int i=0; i<10 ; i++)
+            {
+                if(address[i]=='r')
+                {
+                    flag= i ;
+                    break;
+                }
+            }
+            address += flag;
+            flag = strlen(address) ;
+            char flag2 = 0;
+
+            if(nth_word(input,3)[0]=='"')
+            {
+                flag2 = 1;
+            }
+            for(int i=1 ; i<strlen(address) ; i++)
+            {
+                if(strcmp2("str",address+i,3))
+
+                if(address[i]=='"' && address[i-1]!='\\')
+                {
+                    flag = i;
+                    break;
+                }
+            }
+            address[flag] = '\0';
+            if(flag2 == 0)
+            {
+                for(int i=0 ; i<strlen(address) ; i++)
+                {
+                    if(address[i]==' ')
+                    {
+                        flag = i;
+                        break;
+                    }
+                }
+            }
+            address[flag] = '\0';
+            address = convert_input_address(address);
+
+            char * temp  = (char*)malloc(strlen(address));
+            flag = 0;
+            for(int i=0 ; i<strlen(address); i++)
+            {
+                if(address[i]=='/')
+                    flag = i;
+                temp[i] = address[i];
+            }
+            temp[flag] = '\0';
+            //printf("folder : %s\n",temp);
+            //printf("file   : %s\n",address);
+            if(check_folder_address(temp)==0)
+            {
+                printf("invalid address\n");
+                continue;
+            }
+            if(check_file_address(address)==0)
+            {
+                printf("invalid file name\n");
+                continue;
+            }
+            char * str = (char *)malloc(10000000);
+            flag = 0 ;
+            char flag_address = 1;
+            flag2 = 0;
+            for(int i=1 ;i<strlen(input) ; i++)
+            {
+                if(input[i]=='"' && input[i-1]!='\\')
+                {
+                    flag2++;
+                }
+                if((flag2==0 && input[i]==' ') || flag2 ==2)
+                {
+                    //printf("8");
+                    flag_address = 0;
+                }
+                if (strcmp2("str",input+i,3)==1  && flag_address==0 )
+                {
+                    flag = i;
+                    break;
+                }
+            }
+            flag+=3;
+            strcpy(str,input+flag);
+            if(str[0]=='"')
+            {
+                str++;
+                flag = 0;
+                for(int i=1 ; i<strlen(str) ; i++)
+                {
+                    if(str[i]=='"'&&str[i-1]=='\\')
+                    {
+                        flag = i ;
+                        break;
+                    }
+                }
+                str[flag]='\0';
+            }
+            else
+            {
+                flag = 0 ;
+                for(int i=0 ; i<strlen(str); i++)
+                {
+                    if(str[i]!=' ')
+                    {
+                        flag =i;
+                        break;
+                    }
+                }
+                str += flag;
+            }
+            flag2 = 0;
+            if(str[0]=='"')
+            {
+                //printf("**");
+                flag2 = 1;
+                str++;
+                flag = strlen(str)-1;
+                for(int i=1 ; i<strlen(str) ; i++)
+                {
+                    if(str[i]=='"' && str[i-1]!='\\')
+                    {
+                        flag = i;
+                        break;
+                    }
+                }
+                str[flag]= '\0';
+
+            }
+            else
+            {
+                flag = -1;
+                for(int i=0 ; i<strlen(str) ; i++)
+                {
+                    if(str[i]==' ' )
+                    {
+                        flag = i;
+                        break;
+                    }
+                }
+                if(flag != -1)
+                    str[flag]= '\0';
+            }
+            str = convert_input_str(str);
+            int line=0 , pos=0;
+            char * position = nth_word(input,count_space(input)+1);
+            flag = 0 ;
+            for(int i=0 ; i<strlen(position) ;i++)
+            {
+                if(position[i]==':')
+                {
+                     flag = 1;
+                     continue;
+                }
+                else if(flag==0)
+                {
+                    line *= 10;
+                    line += position[i]-'0';
+                }
+                else{
+                    pos *=10;
+                    pos += position[i]-'0';
+                }
+            }
+            insert(address,line,pos,str);
+            printf("done\n");
+
+
+
+
+        }
+        else if(strcmp(command,"cat")==0) //cat --file file.txt
+        {
+            char * address = (char*)malloc(100000);
+            int word_number = count_space(input) + 1 ;
+            strcpy(address,nth_word(input,3));
+            for(int i=4 ; i<= word_number ; i++)
+            {
+                strcat(address," ");
+                strcat(address,nth_word(input,i));
+            }
+            int address_lenght = strlen(address);
+            if(word_number!=3)
+            {
+                address++;
+                address[address_lenght-1] = '\0';
+            }
+            address_lenght = strlen(address);
+            if(address[address_lenght-1]=='"')
+            {
+                address[address_lenght-1] = '\0';
+            }
+            int flag = 0 ;
+            for(int i=0; i<10 ; i++)
+            {
+                if(address[i]=='r')
+                {
+                    flag= i ;
+                    break;
+                }
+            }
+            address += flag;
+
+            char * temp  = (char*)malloc(strlen(address));
+            flag = 0;
+            for(int i=0 ; i<strlen(address); i++)
+            {
+                if(address[i]=='/')
+                    flag = i;
+                temp[i] = address[i];
+            }
+            temp[flag] = '\0';
+            //printf("%s \n",temp);
+            address = convert_input_address(address);
+            temp = convert_input_address(temp);
+            if(check_folder_address(temp)==0)
+            {
+                printf("invalid address\n");
+                continue;
+            }
+            if(check_file_address(address)==0)
+            {
+                printf("invalid file name\n");
+                continue;
+            }
+            cat_print(address);
+
+            printf("done\n");
+        }
+        else if(strcmp(command,"removetstr")==0) //  --file /root/file1.txt --pos 2:1 -size 3 -b
+        {
+            char * address = first_str(input);
+
+            address = convert_input_address(address);
+            int flag =0;
+            for(int i=0 ;i<strlen(address) ; i++ )
+            {
+                if(address[i]=='r')
+                {
+                    flag = i;
+                    break;
+                }
+            }
+            address += flag;
+            char * temp  = (char*)malloc(strlen(address));
+            flag = 0;
+            for(int i=0 ; i<strlen(address); i++)
+            {
+                if(address[i]=='/')
+                    flag = i;
+                temp[i] = address[i];
+            }
+            temp[flag] = '\0';
+
+            if(check_folder_address(temp)==0)
+            {
+                printf("invalid address\n");
+                continue;
+            }
+            if(check_file_address(address)==0)
+            {
+                printf("invalid file name\n");
+                continue;
+            }
+            flag = 0;
+            int char_pass = strlen(address)+2+strlen(nth_word(input,1)) + strlen(nth_word(input,2));
+            for(int i =char_pass ; i<strlen(input); i++)
+            {
+                if(input[i]=='-')
+                {
+                    flag = i;
+                    break;
+                }
+            }
+            char * position = first_str(input+flag);
+            int line=0, pos=0;
+            flag = 0;
+            for(int i=0 ; i<strlen(position) ;i++)
+            {
+                if(position[i]==':')
+                {
+                     flag = 1;
+                     continue;
+                }
+                else if(flag==0)
+                {
+                    line *= 10;
+                    line += position[i]-'0';
+                }
+                else{
+                    pos *=10;
+                    pos += position[i]-'0';
+                }
+            }
+            char_pass += strlen(position)+1+strlen("pos");
+
+            for(int i =char_pass ; i<strlen(input); i++)
+            {
+                if(input[i]=='-')
+                {
+                    flag = i;
+                    break;
+                }
+            }
+            char * size_str = first_str(input+flag);
+            int size = 0;
+            for(int i=0 ; i<strlen(size_str) ; i++)
+            {
+                size *=10;
+                size += size_str[i]-'0';
+            }
+
+
+            for(int i =0 ; i<strlen(input); i++)
+            {
+                if(input[i]=='-')
+                {
+                    flag = i;
+                }
+            }
+            char direction = input[flag+1];
+            remove_by_index(address,line,pos,size,direction);
+            printf("done\n");
+
+
+        }
+        else if(strcmp(command,"copystr")==0) // like remove
+        {
+            char * address = first_str(input);
+
+            address = convert_input_address(address);
+            int flag =0;
+            for(int i=0 ;i<strlen(address) ; i++ )
+            {
+                if(address[i]=='r')
+                {
+                    flag = i;
+                    break;
+                }
+            }
+            address += flag;
+            char * temp  = (char*)malloc(strlen(address));
+            flag = 0;
+            for(int i=0 ; i<strlen(address); i++)
+            {
+                if(address[i]=='/')
+                    flag = i;
+                temp[i] = address[i];
+            }
+            temp[flag] = '\0';
+
+            if(check_folder_address(temp)==0)
+            {
+                printf("invalid address\n");
+                continue;
+            }
+            if(check_file_address(address)==0)
+            {
+                printf("invalid file name\n");
+                continue;
+            }
+            flag = 0;
+            int char_pass = strlen(address)+2+strlen(nth_word(input,1)) + strlen(nth_word(input,2));
+            for(int i =char_pass ; i<strlen(input); i++)
+            {
+                if(input[i]=='-')
+                {
+                    flag = i;
+                    break;
+                }
+            }
+            char * position = first_str(input+flag);
+            int line=0, pos=0;
+            flag = 0;
+            for(int i=0 ; i<strlen(position) ;i++)
+            {
+                if(position[i]==':')
+                {
+                     flag = 1;
+                     continue;
+                }
+                else if(flag==0)
+                {
+                    line *= 10;
+                    line += position[i]-'0';
+                }
+                else{
+                    pos *=10;
+                    pos += position[i]-'0';
+                }
+            }
+            char_pass += strlen(position)+1+strlen("pos");
+
+            for(int i =char_pass ; i<strlen(input); i++)
+            {
+                if(input[i]=='-')
+                {
+                    flag = i;
+                    break;
+                }
+            }
+            char * size_str = first_str(input+flag);
+            int size = 0;
+            for(int i=0 ; i<strlen(size_str) ; i++)
+            {
+                size *=10;
+                size += size_str[i]-'0';
+            }
+
+
+            for(int i =0 ; i<strlen(input); i++)
+            {
+                if(input[i]=='-')
+                {
+                    flag = i;
+                }
+            }
+            char direction = input[flag+1];
+            copy_to_clipboard(address,line,pos,size,direction);
+            printf("done\n");
+
+
+        }
+        else if(strcmp(command,"cutstr")==0) // like remove
+        {
+            char * address = first_str(input);
+
+            address = convert_input_address(address);
+            int flag =0;
+            for(int i=0 ;i<strlen(address) ; i++ )
+            {
+                if(address[i]=='r')
+                {
+                    flag = i;
+                    break;
+                }
+            }
+            address += flag;
+            char * temp  = (char*)malloc(strlen(address));
+            flag = 0;
+            for(int i=0 ; i<strlen(address); i++)
+            {
+                if(address[i]=='/')
+                    flag = i;
+                temp[i] = address[i];
+            }
+            temp[flag] = '\0';
+
+            if(check_folder_address(temp)==0)
+            {
+                printf("invalid address\n");
+                continue;
+            }
+            if(check_file_address(address)==0)
+            {
+                printf("invalid file name\n");
+                continue;
+            }
+            flag = 0;
+            int char_pass = strlen(address)+2+strlen(nth_word(input,1)) + strlen(nth_word(input,2));
+            for(int i =char_pass ; i<strlen(input); i++)
+            {
+                if(input[i]=='-')
+                {
+                    flag = i;
+                    break;
+                }
+            }
+            char * position = first_str(input+flag);
+            int line=0, pos=0;
+            flag = 0;
+            for(int i=0 ; i<strlen(position) ;i++)
+            {
+                if(position[i]==':')
+                {
+                     flag = 1;
+                     continue;
+                }
+                else if(flag==0)
+                {
+                    line *= 10;
+                    line += position[i]-'0';
+                }
+                else{
+                    pos *=10;
+                    pos += position[i]-'0';
+                }
+            }
+            char_pass += strlen(position)+1+strlen("pos");
+
+            for(int i =char_pass ; i<strlen(input); i++)
+            {
+                if(input[i]=='-')
+                {
+                    flag = i;
+                    break;
+                }
+            }
+            char * size_str = first_str(input+flag);
+            int size = 0;
+            for(int i=0 ; i<strlen(size_str) ; i++)
+            {
+                size *=10;
+                size += size_str[i]-'0';
+            }
+
+
+            for(int i =0 ; i<strlen(input); i++)
+            {
+                if(input[i]=='-')
+                {
+                    flag = i;
+                }
+            }
+            char direction = input[flag+1];
+            cut_to_clipboard(address,line,pos,size,direction);
+            printf("done\n");
+
+
+        }
+        else if(strcmp(command,"pastestr")==0) //pastestr –file <file name> –pos <line no>:<start position>
+        {
+            char * address = (char*)malloc(100000);
+            int word_number = count_space(input) + 1 ;
+            strcpy(address,nth_word(input,3));
+            for(int i=4 ; i<= word_number ; i++)
+            {
+                strcat(address," ");
+                strcat(address,nth_word(input,i));
+            }
+            int address_lenght = strlen(address);
+
+            address_lenght = strlen(address);
+            if(address[address_lenght-1]=='"')
+            {
+                address[address_lenght-1] = '\0';
+            }
+            int flag = 0 ;
+            for(int i=0; i<10 ; i++)
+            {
+                if(address[i]=='r')
+                {
+                    flag= i ;
+                    break;
+                }
+            }
+            address += flag;
+            flag = strlen(address) ;
+            char flag2 = 0;
+
+            if(nth_word(input,3)[0]=='"')
+            {
+                flag2 = 1;
+            }
+            for(int i=1 ; i<strlen(address) ; i++)
+            {
+                if(strcmp2("str",address+i,3))
+
+                if(address[i]=='"' && address[i-1]!='\\')
+                {
+                    flag = i;
+                    break;
+                }
+            }
+            address[flag] = '\0';
+            if(flag2 == 0)
+            {
+                for(int i=0 ; i<strlen(address) ; i++)
+                {
+                    if(address[i]==' ')
+                    {
+                        flag = i;
+                        break;
+                    }
+                }
+            }
+            address[flag] = '\0';
+            address = convert_input_address(address);
+
+            char * temp  = (char*)malloc(strlen(address));
+            flag = 0;
+            for(int i=0 ; i<strlen(address); i++)
+            {
+                if(address[i]=='/')
+                    flag = i;
+                temp[i] = address[i];
+            }
+            temp[flag] = '\0';
+            //printf("folder : %s\n",temp);
+            //printf("file   : %s\n",address);
+            if(check_folder_address(temp)==0)
+            {
+                printf("invalid address\n");
+                continue;
+            }
+            if(check_file_address(address)==0)
+            {
+                printf("invalid file name\n");
+                continue;
+            }
+            char * str = (char *)malloc(10000000);
+            flag = 0 ;
+            char flag_address = 1;
+            flag2 = 0;
+            for(int i=1 ;i<strlen(input) ; i++)
+            {
+                if(input[i]=='"' && input[i-1]!='\\')
+                {
+                    flag2++;
+                }
+                if((flag2==0 && input[i]==' ') || flag2 ==2)
+                {
+                    //printf("8");
+                    flag_address = 0;
+                }
+                if (strcmp2("str",input+i,3)==1  && flag_address==0 )
+                {
+                    flag = i;
+                    break;
+                }
+            }
+            flag+=3;
+            strcpy(str,input+flag);
+            if(str[0]=='"')
+            {
+                str++;
+                flag = 0;
+                for(int i=1 ; i<strlen(str) ; i++)
+                {
+                    if(str[i]=='"'&&str[i-1]=='\\')
+                    {
+                        flag = i ;
+                        break;
+                    }
+                }
+                str[flag]='\0';
+            }
+            else
+            {
+                flag = 0 ;
+                for(int i=0 ; i<strlen(str); i++)
+                {
+                    if(str[i]!=' ')
+                    {
+                        flag =i;
+                        break;
+                    }
+                }
+                str += flag;
+            }
+            flag2 = 0;
+            if(str[0]=='"')
+            {
+                //printf("**");
+                flag2 = 1;
+                str++;
+                flag = strlen(str)-1;
+                for(int i=1 ; i<strlen(str) ; i++)
+                {
+                    if(str[i]=='"' && str[i-1]!='\\')
+                    {
+                        flag = i;
+                        break;
+                    }
+                }
+                str[flag]= '\0';
+
+            }
+            else
+            {
+                flag = strlen(str)-1;
+                for(int i=0 ; i<strlen(str) ; i++)
+                {
+                    if(str[i]==' ' )
+                    {
+                        flag = i;
+                        break;
+                    }
+                }
+                str[flag]= '\0';
+            }
+            str = convert_input_str(str);
+            int line=0 , pos=0;
+            char * position = nth_word(input,count_space(input)+1);
+            flag = 0 ;
+            for(int i=0 ; i<strlen(position) ;i++)
+            {
+                if(position[i]==':')
+                {
+                     flag = 1;
+                     continue;
+                }
+                else if(flag==0)
+                {
+                    line *= 10;
+                    line += position[i]-'0';
+                }
+                else{
+                    pos *=10;
+                    pos += position[i]-'0';
+                }
+            }
+            insert_from_clipboard(address,line,pos);
+            printf("done\n");
+
+
+
+
+        }
+        else if(strcmp(command,"undo")==0) // undo --file root/test.txt
+        {
+            char * address = (char*)malloc(100000);
+            int word_number = count_space(input) + 1 ;
+            strcpy(address,nth_word(input,3));
+            for(int i=4 ; i<= word_number ; i++)
+            {
+                strcat(address," ");
+                strcat(address,nth_word(input,i));
+            }
+            int address_lenght = strlen(address);
+            if(word_number!=3)
+            {
+                address++;
+                address[address_lenght-1] = '\0';
+            }
+            address_lenght = strlen(address);
+            if(address[address_lenght-1]=='"')
+            {
+                address[address_lenght-1] = '\0';
+            }
+            int flag = 0 ;
+            for(int i=0; i<10 ; i++)
+            {
+                if(address[i]=='r')
+                {
+                    flag= i ;
+                    break;
+                }
+            }
+            address += flag;
+
+            char * temp  = (char*)malloc(strlen(address));
+            flag = 0;
+            for(int i=0 ; i<strlen(address); i++)
+            {
+                if(address[i]=='/')
+                    flag = i;
+                temp[i] = address[i];
+            }
+            temp[flag] = '\0';
+            //printf("%s \n",temp);
+            address = convert_input_address(address);
+            temp = convert_input_address(temp);
+            if(check_folder_address(temp)==0)
+            {
+                printf("invalid address\n");
+                continue;
+            }
+            if(check_file_address(address)==0)
+            {
+                printf("invalid file name\n");
+                continue;
+            }
+            undo(address);
+
+            printf("done\n");
+        }
+        else if(strcmp(command,"auto-indent")==0) // auto-indent --file root/test.txt
+        {
+            char * address = (char*)malloc(100000);
+            int word_number = count_space(input) + 1 ;
+            strcpy(address,nth_word(input,3));
+            for(int i=4 ; i<= word_number ; i++)
+            {
+                strcat(address," ");
+                strcat(address,nth_word(input,i));
+            }
+            int address_lenght = strlen(address);
+            if(word_number!=3)
+            {
+                address++;
+                address[address_lenght-1] = '\0';
+            }
+            address_lenght = strlen(address);
+            if(address[address_lenght-1]=='"')
+            {
+                address[address_lenght-1] = '\0';
+            }
+            int flag = 0 ;
+            for(int i=0; i<10 ; i++)
+            {
+                if(address[i]=='r')
+                {
+                    flag= i ;
+                    break;
+                }
+            }
+            address += flag;
+
+            char * temp  = (char*)malloc(strlen(address));
+            flag = 0;
+            for(int i=0 ; i<strlen(address); i++)
+            {
+                if(address[i]=='/')
+                    flag = i;
+                temp[i] = address[i];
+            }
+            temp[flag] = '\0';
+            //printf("%s \n",temp);
+            address = convert_input_address(address);
+            temp = convert_input_address(temp);
+            if(check_folder_address(temp)==0)
+            {
+                printf("invalid address\n");
+                continue;
+            }
+            if(check_file_address(address)==0)
+            {
+                printf("invalid file name\n");
+                continue;
+            }
+            closing_pair(address);
+
+            printf("done\n");
+        }
+        else if(strcmp(command,"tree")==0) //tree 1
+        {
+            char * depth_str = nth_word(input,2);
+            int depth = 0;
+            int sign = 1;
+            if (depth_str[0]=='-')
+            {
+                sign = -1;
+                depth_str++;
+            }
+            for(int i=0 ; i<strlen(depth_str) ; i++)
+                {
+                    depth *=10;
+                    depth += depth_str[i]-'0';
+                }
+            depth *= sign;
+            if(depth<-1)
+            {
+                printf("invalid depth\n");
+                continue;
+            }
+            tree("root",0,depth);
+            //printf("done\n");
+        }
+        else if(strcmp(command,"compare")==0) // compare a.txt b.txt
+        {
+            char * address1 = first_str2(input+8);
+            char * address2 ;
+            if(input[8]=='"')
+            {
+                address2 = first_str2(input+8+2+strlen(address1)+1);
+            }
+            else
+            {
+                address2 = first_str2(input+8+strlen(address1)+1);
+            }
+            address1 = convert_input_address(address1);
+            address2 = convert_input_address(address2);
+
+            int flag = 0;
+            for(int i=0 ; i<strlen(address1); i++)
+            {
+                if(address1[i]=='r')
+                {
+                    flag = i;
+                    break;
+                }
+            }
+            address1 += flag;
+
+            for(int i=0 ; i<strlen(address2); i++)
+            {
+                if(address2[i]=='r')
+                {
+                    flag = i;
+                    break;
+                }
+            }
+            address2 += flag;
+
+            char * temp1  = (char*)malloc(strlen(address1));
+            flag = 0;
+            for(int i=0 ; i<strlen(address1); i++)
+            {
+                if(address1[i]=='/')
+                    flag = i;
+                temp1[i] = address1[i];
+            }
+            temp1[flag] = '\0';
+            //printf("%s \n",temp);
+            if(check_folder_address(temp1)==0)
+            {
+                printf("first file : invalid address\n");
+                continue;
+            }
+            if(check_file_address(address1)==0)
+            {
+                printf("first file : invalid file name\n");
+                continue;
+            }
+
+            char * temp2  = (char*)malloc(strlen(address2));
+            flag = 0;
+            for(int i=0 ; i<strlen(address2); i++)
+            {
+                if(address2[i]=='/')
+                    flag = i;
+                temp2[i] = address2[i];
+            }
+            temp2[flag] = '\0';
+            //printf("%s \n",temp);
+            if(check_folder_address(temp2)==0)
+            {
+                printf("second file : invalid address\n");
+                continue;
+            }
+            if(check_file_address(address2)==0)
+            {
+                printf("second file : invalid file name\n");
+                continue;
+            }
+
+            line_compare(address1,address2);
+
+        }
+        else if(strcmp(command,"find")==0)// find --file root/file1.txt --str "sa" -count -byword -at 2 -all
+        {
+            char * address = (char*)malloc(100000);
+            int word_number = count_space(input) + 1 ;
+            strcpy(address,nth_word(input,3));
+            for(int i=4 ; i<= word_number ; i++)
+            {
+                strcat(address," ");
+                strcat(address,nth_word(input,i));
+            }
+            int address_lenght = strlen(address);
+
+            address_lenght = strlen(address);
+            if(address[address_lenght-1]=='"')
+            {
+                address[address_lenght-1] = '\0';
+            }
+            int flag = 0 ;
+            for(int i=0; i<10 ; i++)
+            {
+                if(address[i]=='r')
+                {
+                    flag= i ;
+                    break;
+                }
+            }
+            address += flag;
+            flag = strlen(address) ;
+            char flag2 = 0;
+
+            if(nth_word(input,3)[0]=='"')
+            {
+                flag2 = 1;
+            }
+            for(int i=1 ; i<strlen(address) ; i++)
+            {
+                if(strcmp2("str",address+i,3))
+
+                if(address[i]=='"' && address[i-1]!='\\')
+                {
+                    flag = i;
+                    break;
+                }
+            }
+            address[flag] = '\0';
+            if(flag2 == 0)
+            {
+                for(int i=0 ; i<strlen(address) ; i++)
+                {
+                    if(address[i]==' ')
+                    {
+                        flag = i;
+                        break;
+                    }
+                }
+            }
+            address[flag] = '\0';
+            address = convert_input_address(address);
+
+            char * temp  = (char*)malloc(strlen(address));
+            flag = 0;
+            for(int i=0 ; i<strlen(address); i++)
+            {
+                if(address[i]=='/')
+                    flag = i;
+                temp[i] = address[i];
+            }
+            temp[flag] = '\0';
+            //printf("folder : %s\n",temp);
+            //printf("file   : %s\n",address);
+            if(check_folder_address(temp)==0)
+            {
+                printf("invalid address\n");
+                continue;
+            }
+            if(check_file_address(address)==0)
+            {
+                printf("invalid file name\n");
+                continue;
+            }
+            char * str = (char *)malloc(10000000);
+            flag = 0 ;
+            char flag_address = 1;
+            flag2 = 0;
+            for(int i=1 ;i<strlen(input) ; i++)
+            {
+                if(input[i]=='"' && input[i-1]!='\\')
+                {
+                    flag2++;
+                }
+                if((flag2==0 && input[i]==' ') || flag2 ==2)
+                {
+                    //printf("8");
+                    flag_address = 0;
+                }
+                if (strcmp2("str",input+i,3)==1  && flag_address==0 )
+                {
+                    flag = i;
+                    break;
+                }
+            }
+            flag+=3;
+            strcpy(str,input+flag);
+            if(str[0]=='"')
+            {
+                str++;
+                flag = 0;
+                for(int i=1 ; i<strlen(str) ; i++)
+                {
+                    if(str[i]=='"'&&str[i-1]=='\\')
+                    {
+                        flag = i ;
+                        break;
+                    }
+                }
+                str[flag]='\0';
+            }
+            else
+            {
+                flag = 0 ;
+                for(int i=0 ; i<strlen(str); i++)
+                {
+                    if(str[i]!=' ')
+                    {
+                        flag =i;
+                        break;
+                    }
+                }
+                str += flag;
+            }
+            flag2 = 0;
+            if(str[0]=='"')
+            {
+                //printf("**");
+                flag2 = 1;
+                str++;
+                flag = strlen(str)-1;
+                for(int i=1 ; i<strlen(str) ; i++)
+                {
+                    if(str[i]=='"' && str[i-1]!='\\')
+                    {
+                        flag = i;
+                        break;
+                    }
+                }
+                str[flag]= '\0';
+
+            }
+            else
+            {
+                flag = -1;
+                for(int i=0 ; i<strlen(str) ; i++)
+                {
+                    if(str[i]==' ' )
+                    {
+                        flag = i;
+                        break;
+                    }
+                }
+                if (flag!=-1)
+                    str[flag]= '\0';
+            }
+           // printf("address : %s\nstr : %s",address,str);
+            str = convert_input_str(str);
+            int number = count_in_str(input,'-') - count_in_str(address,'-') - count_in_str(str,'-');
+            int at = -1 ;
+            char count = 0 , all=0 , byword = 0;
+
+            if(number==4)
+            {
+               printf("%d\n",find2(address,str,1));
+               continue;
+            }
+            else if(number==5)
+            {
+                flag = 0;
+                for(int i=0 ;i<strlen(input) ;i++)
+                {
+                    if(input[i]=='-')
+                    {
+                        flag = i;
+                    }
+                }
+                char * attribute = nth_word(input+flag+1,1);
+                if(strcmp(attribute,"byword")==0)
+                {
+                    printf("%d\n",convert2byword(find2(address,str,1),address));
+                    continue;
+                }
+                else if(strcmp(attribute,"count")==0)
+                {
+                    printf("%d\n",find_counter(address,str));
+                    continue;
+                }
+                else if(strcmp(attribute,"all")==0)
+                {
+                    int * out = find_all(address,str);
+                    int j =0 ;
+                    while (out[j]!=-1)
+                    {
+                        printf("%d ",out[j]);
+                        j++;
+                    }
+                    if(j==0)
+                    {
+                        printf("-1");
+                    }
+                    printf("\n");
+                }
+                else if(strcmp(attribute,"at")==0)
+                {
+                    char * at_str = nth_word(input+flag+1+3,1);
+                    at = 0;
+                    for(int i=0; i<strlen(at_str); i++)
+                    {
+                        at *=10 ;
+                        at += at_str[i]-'0';
+                    }
+                    printf("%d\n",find2(address,str,at));
+                }
+                else
+                {
+                    printf("invalid attribute");
+                    continue;
+                }
+                continue;
+
+
+           }
+            else if(number==6)
+            {
+                flag = 0;
+                for(int i=0 ;i<strlen(input) ;i++)
+                {
+                    if(input[i]=='-')
+                    {
+                        flag = i;
+                    }
+                }
+                char * attribute = nth_word(input+flag+1,1);
+                if(strcmp(attribute,"byword")==0)
+                {
+                    byword = 1;
+                }
+                else if(strcmp(attribute,"count")==0)
+                {
+                    count =1 ;
+                }
+                else if(strcmp(attribute,"all")==0)
+                {
+                    all = 1;
+                }
+                else if(strcmp(attribute,"at")==0)
+                {
+                    char * at_str = nth_word(input+flag+1+3,1);
+                    at = 0;
+                    for(int i=0; i<strlen(at_str); i++)
+                    {
+                        at *=10 ;
+                        at += at_str[i]-'0';
+                    }
+                }
+                else
+                {
+                        printf("invalid attribute");
+                    continue;
+                }
+                int all_ = count_in_str(input,'-');
+                flag2 = 0;
+                flag = 0;
+                for(int i=0 ;i<strlen(input) ;i++)
+                {
+                    if(input[i]=='-')
+                    {
+                        flag = i;
+                        flag2 ++;
+                    }
+                    if(flag2 == all_ -1)
+                    {
+                        break;
+                    }
+                }
+                attribute = nth_word(input+flag+1,1);
+                if(strcmp(attribute,"byword")==0)
+                {
+                    byword = 1;
+                }
+                else if(strcmp(attribute,"count")==0)
+                {
+                    count =1 ;
+                }
+                else if(strcmp(attribute,"all")==0)
+                {
+                    all = 1;
+                }
+                else if(strcmp(attribute,"at")==0)
+                {
+                    char * at_str = nth_word(input+flag+1+3,1);
+                    at = 0;
+                    for(int i=0; i<strlen(at_str); i++)
+                    {
+                        at *=10 ;
+                        at += at_str[i]-'0';
+                    }
+                }
+                else
+                {
+                    printf("invalid attribute\n");
+                    continue;
+                }
+
+                if(count == 1 || (at!=-1 && all==1) || byword == 0)
+                {
+                    printf("invalid attribute\n");
+                    continue;
+                }
+                else
+                {
+                    if(at != -1)
+                    {
+                        printf("%d\n",convert2byword(find2(address,str,at),address));
+                        continue;
+                    }
+                    else if(all==1 )
+                    {
+                        int * out = find_all(address,str);
+                        int j =0 ;
+                        while (out[j]!=-1)
+                        {
+                            printf("%d ",convert2byword(out[j],address));
+                            j++;
+                        }
+                        if(j==0)
+                        {
+                            printf("-1");
+                        }
+                        printf("\n");
+                        continue;
+                    }
+                    else
+                    {
+                        printf("invalid attribute\n");
+                        continue;
+                    }
+                }
+
+            }
+            else
+            {
+                 printf("invalid attribute");
+                continue;
+            }
+
+        }
+        else if(strcmp(command,"replace")==0)// replace --file root/test.txt --str1 "s\*" --str2 "sa"  [-at <num> | -all]
+        {
+            char * address = (char*)malloc(100000);
+            int word_number = count_space(input) + 1 ;
+            strcpy(address,nth_word(input,3));
+            for(int i=4 ; i<= word_number ; i++)
+            {
+                strcat(address," ");
+                strcat(address,nth_word(input,i));
+            }
+            int address_lenght = strlen(address);
+
+            address_lenght = strlen(address);
+            if(address[address_lenght-1]=='"')
+            {
+                address[address_lenght-1] = '\0';
+            }
+            int flag = 0 ;
+            for(int i=0; i<10 ; i++)
+            {
+                if(address[i]=='r')
+                {
+                    flag= i ;
+                    break;
+                }
+            }
+            address += flag;
+            flag = strlen(address) ;
+            char flag2 = 0;
+
+            if(nth_word(input,3)[0]=='"')
+            {
+                flag2 = 1;
+            }
+            for(int i=1 ; i<strlen(address) ; i++)
+            {
+
+                if(address[i]=='"' && address[i-1]!='\\')
+                {
+                    flag = i;
+                    break;
+                }
+            }
+            address[flag] = '\0';
+            if(flag2 == 0)
+            {
+                for(int i=0 ; i<strlen(address) ; i++)
+                {
+                    if(address[i]==' ')
+                    {
+                        flag = i;
+                        break;
+                    }
+                }
+            }
+            address[flag] = '\0';
+            address = convert_input_address(address);
+
+            char * temp  = (char*)malloc(strlen(address));
+            flag = 0;
+            for(int i=0 ; i<strlen(address); i++)
+            {
+                if(address[i]=='/')
+                    flag = i;
+                temp[i] = address[i];
+            }
+            temp[flag] = '\0';
+            //printf("folder : %s\n",temp);
+            //printf("file   : %s\n",address);
+            if(check_folder_address(temp)==0)
+            {
+                printf("invalid address\n");
+                continue;
+            }
+            if(check_file_address(address)==0)
+            {
+                printf("invalid file name\n");
+                continue;
+            }
+            char * str = (char *)malloc(10000000);
+            flag = 0 ;
+            char flag_address = 1;
+            flag2 = 0;
+            for(int i=1 ;i<strlen(input) ; i++)
+            {
+                if(input[i]=='"' && input[i-1]!='\\')
+                {
+                    flag2++;
+                }
+                if((flag2==0 && input[i]==' ') || flag2 ==2)
+                {
+                    //printf("8");
+                    flag_address = 0;
+                }
+                if (strcmp2("str1",input+i,4)==1  && flag_address==0 )
+                {
+                    flag = i;
+                    break;
+                }
+            }
+            flag+=4;
+            strcpy(str,input+flag);
+            if(str[0]=='"')
+            {
+                str++;
+                flag = 0;
+                for(int i=1 ; i<strlen(str) ; i++)
+                {
+                    if(str[i]=='"'&&str[i-1]=='\\')
+                    {
+                        flag = i ;
+                        break;
+                    }
+                }
+                str[flag]='\0';
+            }
+            else
+            {
+                flag = 0 ;
+                for(int i=0 ; i<strlen(str); i++)
+                {
+                    if(str[i]!=' ')
+                    {
+                        flag =i;
+                        break;
+                    }
+                }
+                str += flag;
+            }
+            flag2 = 0;
+            if(str[0]=='"')
+            {
+                //printf("**");
+                flag2 = 1;
+                str++;
+                flag = strlen(str)-1;
+                for(int i=1 ; i<strlen(str) ; i++)
+                {
+                    if(str[i]=='"' && str[i-1]!='\\')
+                    {
+                        flag = i;
+                        break;
+                    }
+                }
+                str[flag]= '\0';
+
+            }
+            else
+            {
+                flag = -1;
+                for(int i=0 ; i<strlen(str) ; i++)
+                {
+                    if(str[i]==' ' )
+                    {
+                        flag = i;
+                        break;
+                    }
+                }
+                if (flag!=-1)
+                    str[flag]= '\0';
+            }
+           // printf("address : %s\nstr : %s",address,str);
+            str = convert_input_str(str);
+            int temp_number = strlen("replace --str1 ") + strlen(str) + strlen(" --file ") + strlen(address);
+            flag = 0;
+            for(int i = temp_number ; i<strlen(input) ; i++)
+            {
+                if(strcmp2(input+i,"--str2",strlen("--str2")))
+                {
+                    flag = i;
+                    break;
+                }
+            }
+            char * str2 = first_str2(input+flag+strlen("--str2 "));
+            str2 = convert_input_str(str2);
+            int number = count_in_str(input,'-') - count_in_str(address,'-') - count_in_str(str,'-') - count_in_str(str2,'-');
+            int at = -1 ;
+
+            if(number==6)
+            {
+                if(1==replace(address,str,str2,1))
+                    printf("done\n");
+                else
+                    printf("-1\n");
+                continue;
+            }
+            else if(number==7)
+            {
+                flag = 0;
+                for(int i=0 ;i<strlen(input) ;i++)
+                {
+                    if(input[i]=='-')
+                    {
+                        flag = i;
+                    }
+                }
+                char * attribute = nth_word(input+flag+1,1);
+
+                if(strcmp(attribute,"all")==0)
+                {
+                    if(1==replace_all(address,str,str2))
+                        printf("done\n");
+                    else
+                        printf("-1\n");
+                    continue;
+                }
+
+                else if(strcmp(attribute,"at")==0)
+                {
+                    char * at_str = nth_word(input+flag+1+3,1);
+                    at = 0;
+                    for(int i=0; i<strlen(at_str); i++)
+                    {
+                        at *=10 ;
+                        at += at_str[i]-'0';
+                    }
+                    if(1==replace(address,str,str2,at))
+                        printf("done\n");
+                    else
+                        printf("-1\n");
+                    continue;
+                }
+                else
+                {
+                    printf("invalid attribute");
+                    continue;
+                }
+                continue;
+
+
+           }
+            else
+            {
+                printf("invalid input\n");
+            }
+
+
+
+        }
+        else if(strcmp(command,"grep")==0) // grep [-c || -l]--str "sa" --files root/test.txt "root/fil e.txt"
+        {
+            int flag = 0;
+            char attribute = 0;
+            char * temp_attribute = nth_word(input,2);
+            if(strcmp(temp_attribute,"-c")==0)
+            {
+                attribute = 'c';
+                //printf("%c\n",attribute);
+            }
+            else if(strcmp(temp_attribute,"-l")==0)
+            {
+                attribute = 'l';
+            }
+            if(attribute!=0)
+            {
+                for(int i=5 ; i<strlen(input) ; i++)
+                {
+                    input[i] = input[i+3];
+                }
+            }
+            char * str = first_str(input);
+            //printf("%s\n",str);
+            str =convert_input_str(str);
+            int number = strlen("grep --str ") + strlen(str)+1;
+            if(nth_word(input,3)[0]=='"')
+            {
+                number+=2;
+            }
+            char  * addresses[10000];
+
+            int number_of_addresses = 0;
+            /*
+            for(int i= number ; i<strlen(input) ; i++)
+            {
+                if(strcmp2(input+i,"--files",strlen("--files"))==1)
+                {
+                    flag = i;
+                    break;
+                }
+            }*/
+            flag = number;
+            addresses[0] = (first_str2(input+flag+strlen("--files ")));
+            int flag3 = 0;
+            if (addresses[0][0]=='/')
+            {
+                flag3 = 1;
+            }
+            addresses[0] += flag3;
+            if(check_address(addresses[0])==0)
+            {
+                continue;
+            }
+            number = 0;
+            if(input[flag+strlen("--files ")]=='"')
+            {
+                number +=2;
+            }
+            number += 1+ strlen(addresses[0])+flag + strlen("--files ")+flag3;
+            //printf("%s\n",addresses[0]);
+            number_of_addresses ++;
+            int flag_continue = 0;
+            while(number<strlen(input) && flag_continue==0)
+            {
+                addresses[number_of_addresses] = first_str2(input+number);
+                flag3 = 0 ;
+                if(addresses[number_of_addresses][0]=='/')
+                {
+                    flag3 =1;
+                }
+
+                addresses[number_of_addresses] += flag3;
+                if(check_address(addresses[number_of_addresses])==0)
+                {
+                    flag_continue = 1;
+                    break;
+                }
+                if(input[number]=='"')
+                {
+                    //printf("**");
+                    number +=2;
+                }
+                number += 1+strlen(addresses[number_of_addresses])+flag3;
+                //printf("%s\n",addresses[number_of_addresses]);
+                number_of_addresses++;
+            }
+            if(flag_continue==1)
+            {
+                continue;
+            }
+
+            if(attribute==0)
+            {
+                simple_grep(str,number_of_addresses,addresses);
+                continue;
+            }
+            else if(attribute=='c')
+            {
+                //printf("attribute c\n");
+                printf("%d\n",count_grep(str,number_of_addresses,addresses));
+                continue;
+            }
+            else if(attribute == 'l')
+            {
+                l_grep(str,number_of_addresses,addresses);
+                continue;
+            }
+
+        }
+
+        else
+        {
+            printf("invalid command\n");
+        }
+    }
+
+
+}
 
 
 
@@ -122,11 +1846,7 @@ void line_compare_output_arman(char * address1 , char * address2);
 int main()
 {
     initialize();
-
-    char *ch = (char * )malloc(100);
-    //gets(ch);
-    //ch = convert_input_str(ch);
-    //line_compare_output_arman("./root/test2.txt","./root/test.txt");
+    master();
 
     return 0;
 }
@@ -806,6 +2526,13 @@ char * convert_input_str(char * str)
             counter++;
             continue;
         }
+        if(str[i]=='\\' && str[i+1]=='"')
+        {
+            result[counter] = '"';
+            i+=2;
+            counter++;
+            continue;
+        }
         else if(str[i]=='\\' && str[i+1]=='\\')
         {
             result[counter] = '\\';
@@ -935,6 +2662,7 @@ char * nth_word(char * str,int n)
             result[counter] = str[i];
         }
         counter++;
+   // printf("*");
     }
     result[0] = '\0';
     return result;
@@ -1091,6 +2819,7 @@ void simple_grep(char * str ,int n ,char * addresses[n]) // n : number of files
 void l_grep(char * str , int n , char * addresses[n])
 {
     char flag = 0 ;
+    char flag2 = 0;
     int str_lenght = strlen(str);
     for(int j=0 ; j<n ; j++ )
     {
@@ -1107,6 +2836,7 @@ void l_grep(char * str , int n , char * addresses[n])
                 int comp_result = strcmp2(a_line+i,str,str_lenght);
                 if(comp_result==1)
                 {
+                    flag2 = 1;
                     printf("%s\n",addresses[j]);
                     end = 1;
                     break;
@@ -1120,6 +2850,10 @@ void l_grep(char * str , int n , char * addresses[n])
 
         }
         fclose(file);
+    }
+    if(flag2 == 0)
+    {
+        printf("-1\n");
     }
 }
 int count_grep  (char * str ,int n ,char * addresses[n])
@@ -1662,8 +3396,12 @@ char strcmp_ending_with_star2(char * str1 , char * str2)//first string has *
         return 0;
     }
 }
-int contvert2byword(int index ,char *address)
+int convert2byword(int index ,char *address)
 {
+    if(index < 0)
+    {
+        return -1;
+    }
     FILE * file = fopen(address,"r");
     int result = 0;
     char ch;
@@ -1680,7 +3418,7 @@ int contvert2byword(int index ,char *address)
         }
     }
     fclose(file);
-    return result;
+    return result+1;
 
 }
 int * find_all(char * address , char * pattern)
@@ -2916,6 +4654,174 @@ void line_compare_output_arman(char * address1 , char * address2)
     fclose(file1);  fclose(file2);
     fclose(file_temp);
 }//line_compare("./root/test2.txt","./root/test.txt");
+char * convert_input_address(char * str)
+{
+    char * result = (char *)malloc((strlen(str)+1)*sizeof(char));
+    int i=0;
+    int counter = 0;
+    while(i<strlen(str)+1 && str[i-1] != '\0')
+    {
+        if(str[i]=='\\' && str[i+1]=='"')
+        {
+            result[counter] = '"';
+            i+=2;
+            counter++;
+            continue;
+        }
+        else if(str[i]=='\\' && str[i+1]=='\\')
+        {
+            result[counter] = '\\';
+            i+=2;
+            counter++;
+            continue;
+        }
+        else
+        {
+            result[counter] = str[i];
+            counter++;
+            i++;
+        }
+    }
 
+    return result;
+}
+//---------------------------------------
+char check_folder_address(char * address)
+{
+    DIR* dir = opendir(address);
+    if (dir) {
+        closedir(dir);
+        return 1;
+    }
+    else if (ENOENT == errno) {
+        return 0;
+    }
+}
+char check_file_address(char* address)
+{
+    FILE *file;
+    if ((file = fopen(address, "r")))
+    {
+        fclose(file);
+        return 1;
+    }
+    return 0;
+}
+char * first_str(char*str)
+{
+    char * result = (char * )calloc(strlen(str),1);
+    strcpy(result,str);
+    //printf("%s\n",result);
+    int flagg = -1;
+    for(int i=0 ; i<strlen(str) ; i++)
+    {
+        if(str[i]=='-')
+        {
+            flagg = i;
+            break;
+        }
+    }
+    result += flagg;
+    //printf("*");
+    result += strlen(nth_word(result,1))+1;
 
+    if(result[0]=='"')
+    {
+        result++;
+        for(int i=1 ; i<strlen(result) ; i++)
+        {
+            if(result[i]=='"' && result[i-1]!='\\')
+            {
+                flagg = i;
+                break;
+            }
+        }
+        result[flagg]='\0';
+    }
+    else
+    {
+        for(int i=1 ; i<strlen(result) ; i++)
+        {
+            if(result[i]==' ')
+            {
+                flagg = i;
+                break;
+            }
+        }
+        result[flagg]='\0';
+
+    }
+    return result;
+}
+char * first_str2(char*str)
+{
+    char * result = (char * )malloc(strlen(str));
+    strcpy(result,str);
+    int flag = -1;
+
+    if(result[0]=='"')
+    {
+        result++;
+        for(int i=1 ; i<strlen(result) ; i++)
+        {
+            if(result[i]=='"' && result[i-1]!='\\')
+            {
+                flag = i;
+                break;
+            }
+        }
+        result[flag]='\0';
+    }
+    else
+    {
+        for(int i=1 ; i<strlen(result) ; i++)
+        {
+            if(result[i]==' ')
+            {
+                flag = i;
+                break;
+            }
+        }
+        result[flag]='\0';
+
+    }
+    return result;
+}
+int count_in_str(char * str , char ch)
+{
+    int a = 0;
+    for(int i=0; i<strlen(str) ; i++)
+    {
+        if(str[i]==ch)
+        {
+            a++;
+        }
+    }
+    return a;
+}
+char check_address(char * address)
+{
+    char * temp  = (char*)malloc(strlen(address));
+    int flag = 0;
+    for(int i=0 ; i<strlen(address); i++)
+    {
+        if(address[i]=='/')
+            flag = i;
+        temp[i] = address[i];
+    }
+    temp[flag] = '\0';
+    //printf("folder : %s\n",temp);
+    //printf("file   : %s\n",address);
+    if(check_folder_address(temp)==0)
+    {
+        printf("invalid address\n");
+        return 0;
+    }
+    if(check_file_address(address)==0)
+    {
+        printf("invalid file name\n");
+        return 0;
+    }
+    return 1;
+}
 
