@@ -1,4 +1,4 @@
-#include <conio.h>
+//#include <conio.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
@@ -15,6 +15,10 @@
 #include <unistd.h>
 #include <dirent.h>
 #include <errno.h>
+#include <ncurses.h>
+#include <time.h>
+#include <curses.h>
+#include <unistd.h>
 
 /*
 to do list :
@@ -35,7 +39,6 @@ find function is not finished
 some notes for using this program
 
 - grep has a bug that end the program for this input : grep -l --str "ssfa" --files root/test.txt "root/fil e.txt"
-it's ok in ubuntu
 
 */
 
@@ -109,7 +112,7 @@ void l_grep_output_arman(char * str , int n , char * addresses[n]);
 int count_grep_input_arman  (char * str_address ,int n ,char * addresses[n]);
 int count_grep_output_arman  (char * str ,int n ,char * addresses[n]);
 void line_compare_output_arman(char * address1 , char * address2);
-//---------------------------------------------------------------
+//----------------------------input-----------------------------------
 char * convert_input_address(char * str);
 char check_folder_address(char * address);
 char check_file_address(char* address);
@@ -117,8 +120,17 @@ char * first_str(char*str);
 char * first_str2(char*str);
 int count_in_str(char * str , char ch);
 char check_address(char * address);
+//---------------phase 2-----------------------
+void print_bord(char * address ,char * vim_status);
+char * get_command();
+char execute();
 
 
+
+// definitions -----
+
+int MAX_LINE = 30;
+//------------------
 
 
 void master()
@@ -126,7 +138,11 @@ void master()
     char * input = (char* )malloc(100000);
     while (1)
     {
-        gets(input);
+        fgets(input,100000,stdin);
+        if(input[strlen(input)-1]=='\n')
+        {
+            input[strlen(input)-1] = '\0';
+        }
         char * command = nth_word(input,1);
 
         // without arman
@@ -409,10 +425,7 @@ void master()
                 temp[i] = address[i];
             }
             temp[flag] = '\0';
-            //printf("%s \n",temp);
-            address = convert_input_address(address);
-            temp = convert_input_address(temp);
-            if(check_folder_address(temp)==0)
+	    if(check_folder_address(temp)==0)
             {
                 printf("invalid address\n");
                 continue;
@@ -1038,6 +1051,7 @@ void master()
                     depth += depth_str[i]-'0';
                 }
             depth *= sign;
+            //printf("%s ",depth_str);
             if(depth<-1)
             {
                 printf("invalid depth\n");
@@ -1643,7 +1657,7 @@ void master()
                     str[flag]= '\0';
             }
            // printf("address : %s\nstr : %s",address,str);
-            str = convert_input_str(str);
+            //str = convert_input_str(str);
             int temp_number = strlen("replace --str1 ") + strlen(str) + strlen(" --file ") + strlen(address);
             flag = 0;
             for(int i = temp_number ; i<strlen(input) ; i++)
@@ -1655,9 +1669,11 @@ void master()
                 }
             }
             char * str2 = first_str2(input+flag+strlen("--str2 "));
+           // printf("-%s-\n",str);
             str2 = convert_input_str(str2);
             int number = count_in_str(input,'-') - count_in_str(address,'-') - count_in_str(str,'-') - count_in_str(str2,'-');
             int at = -1 ;
+
 
             if(number==6)
             {
@@ -1743,7 +1759,7 @@ void master()
             }
             char * str = first_str(input);
             //printf("%s\n",str);
-            str =convert_input_str(str);
+            //str =convert_input_str(str);
             int number = strlen("grep --str ") + strlen(str)+1;
             if(nth_word(input,3)[0]=='"')
             {
@@ -1843,13 +1859,23 @@ void master()
 
 
 
-
+// cd /mnt/d/daneshgah/c/FOP\ project/
 int main()
 {
-    initialize();
-    master();
+    //initialize();
+    //master();
 
-    return 0;
+    print_bord("./temp/test.txt","NORMAL");
+    while(execute())
+    {
+        print_bord("","NORMAL");
+    }
+
+    //printf("%d",getch());
+    get_command();
+    endwin();
+
+	return 0;
 }
 //printf("%d",mkdir((char *)"rot"));
 void create_file(char * address)// directories exist
@@ -1873,7 +1899,7 @@ void create_folder(char * address)
     temp_address[end] = '\0';
 
 
-    while (mkdir(temp_address ) ==  -1 || address[end]!='\0')
+    while (mkdir(temp_address , 0777 ) ==  -1 || address[end]!='\0')
     {
         temp_address[end] = address[end];
         if(address[end]=='\0')
@@ -4662,6 +4688,7 @@ void line_compare_output_arman(char * address1 , char * address2)
 }//line_compare("./root/test2.txt","./root/test.txt");
 char * convert_input_address(char * str)
 {
+    return str;
     char * result = (char *)malloc((strlen(str)+1)*sizeof(char));
     int i=0;
     int counter = 0;
@@ -4691,7 +4718,7 @@ char * convert_input_address(char * str)
 
     return result;
 }
-//---------------------------------------
+//---------------------input------------------
 char check_folder_address(char * address)
 {
     DIR* dir = opendir(address);
@@ -4826,6 +4853,200 @@ char check_address(char * address)
     if(check_file_address(address)==0)
     {
         printf("invalid file name\n");
+        return 0;
+    }
+    return 1;
+}
+//----------------------------------phase 2------------------------------------------------
+void print_bord(char * address , char * vim_status)
+{
+    if(strlen(address)==0)
+    {
+        int MAX_LINE = 30;
+
+        initscr();
+        start_color();
+        move(0,2);
+        init_pair(1,COLOR_YELLOW,COLOR_BLACK);
+        init_pair(2,COLOR_WHITE,COLOR_CYAN);
+        init_pair(3,COLOR_WHITE,8); // bar line
+
+        attron(COLOR_PAIR(2));
+        printw("%s",vim_status);
+        attroff(COLOR_PAIR(2));
+        attron(COLOR_PAIR(1));
+        printw(" %s",address);
+
+        for(int i=1 ;i<=MAX_LINE;i++ )
+        {
+            move(i,0);
+            printw("%2d",i);
+        }
+        for(int i=1 ;i<=MAX_LINE;i++ )
+        {
+            move(i,2);
+            printw("|");
+        }
+
+
+
+
+        attroff(COLOR_PAIR(1));
+        move(MAX_LINE+2,0);
+        attron(COLOR_PAIR(3));
+        printw("type here                                           \n");
+        attroff(COLOR_PAIR(3));
+        move(MAX_LINE+2,0);
+        refresh();
+
+        return ;
+    }
+    int MAX_LINE = 30;
+
+    int flag2 = 0;
+    for(int i= 0 ;i<10 ; i++)
+    {
+        if(address[i]=='r')
+        {
+            flag2 =i;
+            break;
+        }
+    }
+    address+=flag2;
+	initscr();
+	clear();
+    raw();
+    start_color();
+    move(0,2);
+    init_pair(1,COLOR_YELLOW,COLOR_BLACK);
+    init_pair(2,COLOR_WHITE,COLOR_CYAN);
+    init_pair(3,COLOR_WHITE,8); // bar line
+
+    attron(COLOR_PAIR(2));
+    printw("%s",vim_status);
+    attroff(COLOR_PAIR(2));
+    attron(COLOR_PAIR(1));
+    printw(" %s",address);
+
+    for(int i=1 ;i<=MAX_LINE;i++ )
+    {
+        move(i,0);
+        printw("%2d",i);
+    }
+    for(int i=1 ;i<=MAX_LINE;i++ )
+    {
+        move(i,2);
+        printw("|");
+    }
+
+    FILE * file = fopen(address,"r");
+    char * line = (char*)malloc(100000);
+    int i = 1 ;
+    char flag = 0;
+    attroff(COLOR_PAIR(1));
+    while(fgets(line,100000,file)!=NULL )
+    {
+        if(i>MAX_LINE)
+        {
+            flag=1;
+            break;
+        }
+        move(i,4);
+        if(line[strlen(line)-1]=='\n')
+        {
+            line[strlen(line)-1] = '\0';
+        }
+        printw("%s",line);
+        i++;
+    }
+    fclose(file);
+    attron(COLOR_PAIR(1));
+    if(flag==1)
+    {
+        move(MAX_LINE+1,4);
+        printw("...");
+    }
+    if(i<MAX_LINE)
+    {
+        for(int j=i+1 ;j<=MAX_LINE;j++ )
+        {
+            move(j,0);
+            printw("~  ",j);
+        }
+
+    }
+    attroff(COLOR_PAIR(1));
+    move(MAX_LINE+2,0);
+    attron(COLOR_PAIR(3));
+    printw("type here                                           \n");
+    attroff(COLOR_PAIR(3));
+    move(MAX_LINE+2,0);
+    refresh();
+
+
+}
+char * get_command()
+{
+    //initscr();
+    init_pair(3,COLOR_WHITE,8); // bar line
+
+    //raw();
+    //start_color();
+    noecho();
+    attron(COLOR_PAIR(3));
+    char * result = (char *)malloc(1000000);
+    char ch;
+    move(MAX_LINE+2,0);
+    ch  = getch();
+    printw("                                                    \n");
+    move(MAX_LINE+2,0);
+    int i=0;
+    while(ch!='\n')
+    {
+        move(MAX_LINE+2,i);
+        if(ch==127){
+            if(i>0)
+                i--;
+            move(MAX_LINE+2,i);
+            result[i]='\0';
+            if(mvinch(MAX_LINE+2,i)!=' ')
+                printw(" ");
+
+        }
+        else{
+            result[i] = ch;
+            if(ch!=27)
+            {
+                printw("%c",ch);
+            }
+            i++;
+        }
+        ch = getch();
+    }
+    result[i]='\0';
+    attroff(COLOR_PAIR(3));
+    return result;
+
+}
+char execute()
+{
+    char * command = get_command();
+    char * com1 = nth_word(command,1);
+    if(strcmp(com1,":open")==0)
+    {
+        char * address = first_str(command+5);
+        if(check_address(address)==0){
+            init_pair(4,COLOR_RED,8);
+            attron(COLOR_PAIR(4));
+            move(MAX_LINE+2,0);
+            printw("wrong address");
+            attroff(COLOR_PAIR(4));
+            return 1;
+        }
+        print_bord(command+5,"NORMAL");
+    }
+    else if (command[0]==27)
+    {
         return 0;
     }
     return 1;

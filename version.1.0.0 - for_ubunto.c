@@ -1,4 +1,4 @@
-#include <conio.h>
+//#include <conio.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
@@ -15,6 +15,7 @@
 #include <unistd.h>
 #include <dirent.h>
 #include <errno.h>
+#include <ncurses.h>
 
 /*
 to do list :
@@ -35,7 +36,6 @@ find function is not finished
 some notes for using this program
 
 - grep has a bug that end the program for this input : grep -l --str "ssfa" --files root/test.txt "root/fil e.txt"
-it's ok in ubuntu
 
 */
 
@@ -126,7 +126,11 @@ void master()
     char * input = (char* )malloc(100000);
     while (1)
     {
-        gets(input);
+        fgets(input,100000,stdin);
+        if(input[strlen(input)-1]=='\n')
+        {
+            input[strlen(input)-1] = '\0';
+        }
         char * command = nth_word(input,1);
 
         // without arman
@@ -409,10 +413,7 @@ void master()
                 temp[i] = address[i];
             }
             temp[flag] = '\0';
-            //printf("%s \n",temp);
-            address = convert_input_address(address);
-            temp = convert_input_address(temp);
-            if(check_folder_address(temp)==0)
+	    if(check_folder_address(temp)==0)
             {
                 printf("invalid address\n");
                 continue;
@@ -1038,6 +1039,7 @@ void master()
                     depth += depth_str[i]-'0';
                 }
             depth *= sign;
+            //printf("%s ",depth_str);
             if(depth<-1)
             {
                 printf("invalid depth\n");
@@ -1643,7 +1645,7 @@ void master()
                     str[flag]= '\0';
             }
            // printf("address : %s\nstr : %s",address,str);
-            str = convert_input_str(str);
+            //str = convert_input_str(str);
             int temp_number = strlen("replace --str1 ") + strlen(str) + strlen(" --file ") + strlen(address);
             flag = 0;
             for(int i = temp_number ; i<strlen(input) ; i++)
@@ -1655,9 +1657,11 @@ void master()
                 }
             }
             char * str2 = first_str2(input+flag+strlen("--str2 "));
+           // printf("-%s-\n",str);
             str2 = convert_input_str(str2);
             int number = count_in_str(input,'-') - count_in_str(address,'-') - count_in_str(str,'-') - count_in_str(str2,'-');
             int at = -1 ;
+
 
             if(number==6)
             {
@@ -1743,7 +1747,7 @@ void master()
             }
             char * str = first_str(input);
             //printf("%s\n",str);
-            str =convert_input_str(str);
+            //str =convert_input_str(str);
             int number = strlen("grep --str ") + strlen(str)+1;
             if(nth_word(input,3)[0]=='"')
             {
@@ -1873,7 +1877,7 @@ void create_folder(char * address)
     temp_address[end] = '\0';
 
 
-    while (mkdir(temp_address ) ==  -1 || address[end]!='\0')
+    while (mkdir(temp_address , 0777 ) ==  -1 || address[end]!='\0')
     {
         temp_address[end] = address[end];
         if(address[end]=='\0')
@@ -4662,6 +4666,7 @@ void line_compare_output_arman(char * address1 , char * address2)
 }//line_compare("./root/test2.txt","./root/test.txt");
 char * convert_input_address(char * str)
 {
+    return str;
     char * result = (char *)malloc((strlen(str)+1)*sizeof(char));
     int i=0;
     int counter = 0;
@@ -4830,4 +4835,3 @@ char check_address(char * address)
     }
     return 1;
 }
-

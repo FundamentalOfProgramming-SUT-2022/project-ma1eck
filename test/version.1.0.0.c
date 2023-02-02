@@ -35,7 +35,6 @@ find function is not finished
 some notes for using this program
 
 - grep has a bug that end the program for this input : grep -l --str "ssfa" --files root/test.txt "root/fil e.txt"
-it's ok in ubuntu
 
 */
 
@@ -258,7 +257,7 @@ void master()
                 printf("invalid file name\n");
                 continue;
             }
-            char * str = (char *)malloc(100000);
+            char * str = (char *)malloc(10000000);
             flag = 0 ;
             char flag_address = 1;
             flag2 = 0;
@@ -426,7 +425,7 @@ void master()
 
             printf("done\n");
         }
-        else if(strcmp(command,"removestr")==0) //  --file /root/file1.txt --pos 2:1 -size 3 -b
+        else if(strcmp(command,"removetstr")==0) //  --file /root/file1.txt --pos 2:1 -size 3 -b
         {
             char * address = first_str(input);
 
@@ -797,7 +796,7 @@ void master()
                 printf("invalid file name\n");
                 continue;
             }
-            char * str = (char *)malloc(100000);
+            char * str = (char *)malloc(10000000);
             flag = 0 ;
             char flag_address = 1;
             flag2 = 0;
@@ -1207,7 +1206,7 @@ void master()
                 printf("invalid file name\n");
                 continue;
             }
-            char * str = (char *)malloc(100000);
+            char * str = (char *)malloc(10000000);
             flag = 0 ;
             char flag_address = 1;
             flag2 = 0;
@@ -1560,7 +1559,7 @@ void master()
                 printf("invalid file name\n");
                 continue;
             }
-            char * str = (char *)malloc(100000);
+            char * str = (char *)malloc(10000000);
             flag = 0 ;
             char flag_address = 1;
             flag2 = 0;
@@ -1895,7 +1894,7 @@ void create_folder(char * address)
 char * read_file(char * address) // this is a valid address , return a string that shows what's in the file
 {
     char ch;
-    char* result = (char*) malloc(100000*sizeof(char));  // 10000 is max number of characters
+    char* result = (char*) malloc(1000000*sizeof(char));  // 10000 is max number of characters
     FILE * file = fopen(address,"r");
     int i=0;
     do {
@@ -2240,20 +2239,20 @@ void line_compare(char * address1 , char * address2) // this function print the 
     FILE * file1 = fopen(address1,"r");
     FILE * file2 = fopen(address2,"r");
 
-    char * str1 = (char*)malloc(100000*sizeof(char));
-    char * str2 = (char*)malloc(100000*sizeof(char));
+    char * str1 = (char*)malloc(1000000*sizeof(char));
+    char * str2 = (char*)malloc(1000000*sizeof(char));
 
     int finish1 = 0;
     int finish2 = 0;
     int line = 1;
     while (1)
     {
-        if(fgets(str1,100000,file1) == NULL)
+        if(fgets(str1,1000000,file1) == NULL)
         {
             finish1 = 1;
         }
 
-        if(fgets(str2,100000,file2) == NULL)
+        if(fgets(str2,1000000,file2) == NULL)
         {
             finish2 = 1;
         }
@@ -2262,7 +2261,7 @@ void line_compare(char * address1 , char * address2) // this function print the 
             break;
         }
 
-        for(int i=0; i<100000; i++)
+        for(int i=0; i<1000000; i++)
         {
             if(str2[i]=='\0'&&str2[i-1]!='\n')
             {
@@ -2273,7 +2272,7 @@ void line_compare(char * address1 , char * address2) // this function print the 
                 break;
 
         }
-        for(int i=0; i<100000; i++)
+        for(int i=0; i<1000000; i++)
         {
             if(str1[i]=='\0'&&str1[i-1]!='\n')
             {
@@ -2303,7 +2302,7 @@ void line_compare(char * address1 , char * address2) // this function print the 
         int finish_line = line-1;
         while (!finish1)
         {
-            if(fgets(str1,100000,file1) == NULL)
+            if(fgets(str1,1000000,file1) == NULL)
             {
                 finish1 = 1;
             }
@@ -2315,12 +2314,12 @@ void line_compare(char * address1 , char * address2) // this function print the 
         file1 = fopen(address1,"r");
         for(int i=1 ;i<start_line ; i++)
         {
-            fgets(str1,100000,file1);
+            fgets(str1,1000000,file1);
         }
         for(int i=start_line ;i<=finish_line ; i++)
         {
-            fgets(str1,100000,file1);
-            for(int i=0; i<100000; i++)
+            fgets(str1,1000000,file1);
+            for(int i=0; i<1000000; i++)
             {
             if(str1[i]=='\0'&&str1[i-1]!='\n')
             {
@@ -2341,7 +2340,7 @@ void line_compare(char * address1 , char * address2) // this function print the 
         int finish_line = line-1;
         while (!finish2)
         {
-            if(fgets(str2,100000,file2) == NULL)
+            if(fgets(str2,1000000,file2) == NULL)
             {
                 finish2 = 1;
             }
@@ -2353,12 +2352,12 @@ void line_compare(char * address1 , char * address2) // this function print the 
         file2 = fopen(address2,"r");
         for(int i=1 ;i<start_line ; i++)
         {
-            fgets(str2,100000,file2);
+            fgets(str2,1000000,file2);
         }
         for(int i=start_line ;i<=finish_line ; i++)
         {
-            fgets(str2,100000,file2);
-            for(int i=0; i<100000; i++)
+            fgets(str2,1000000,file2);
+            for(int i=0; i<1000000; i++)
             {
             if(str2[i]=='\0'&&str2[i-1]!='\n')
             {
@@ -2418,11 +2417,11 @@ void simple_find(char *address , char * str)
         str = copy_str;
         int str_lenght = strlen(str);
         FILE * file = fopen(address,"r");
-        char * a_line = (char*)malloc(100000*sizeof(char));
+        char * a_line = (char*)malloc(1000000*sizeof(char));
 
         int char_before = 0;
         int main_result = -1;
-        while(fgets(a_line,100000,file) != NULL)
+        while(fgets(a_line,1000000,file) != NULL)
         {
             int line_lenght = strlen(a_line);
             int result = -1;
@@ -2468,11 +2467,11 @@ void simple_find(char *address , char * str)
             str = copy_str;
             int str_lenght = strlen(str);
             FILE * file = fopen(address,"r");
-            char * a_line = (char*)malloc(100000*sizeof(char));
+            char * a_line = (char*)malloc(1000000*sizeof(char));
 
             int char_before = 0;
             int main_result = -1;
-            while(fgets(a_line,100000,file) != NULL)
+            while(fgets(a_line,1000000,file) != NULL)
             {
                 int line_lenght = strlen(a_line);
                 int result = strcmp_beginning_with_star(str,a_line);
@@ -2492,11 +2491,11 @@ void simple_find(char *address , char * str)
             str = copy_str;
             int str_lenght = strlen(str);
             FILE * file = fopen(address,"r");
-            char * a_line = (char*)malloc(100000*sizeof(char));
+            char * a_line = (char*)malloc(1000000*sizeof(char));
 
             int char_before = 0;
             int main_result = -1;
-            while(fgets(a_line,100000,file) != NULL)
+            while(fgets(a_line,1000000,file) != NULL)
             {
                 int line_lenght = strlen(a_line);
                 int result = strcmp_beginning_with_star(str,a_line);
@@ -2515,44 +2514,39 @@ void simple_find(char *address , char * str)
 }
 char * convert_input_str(char * str)
 {
-
     char * result = (char *)malloc((strlen(str)+1)*sizeof(char));
     int i=0;
-    result[0] = '\0';
     int counter = 0;
     while(i<strlen(str)+1 && str[i-1] != '\0')
     {
         if(str[i]=='\\' && str[i+1]=='n')
         {
-            strcat(result,"\n");
+            result[counter] = '\n';
             i+=2;
             counter++;
             continue;
         }
         if(str[i]=='\\' && str[i+1]=='"')
         {
-            strcat(result,"\"");
+            result[counter] = '"';
             i+=2;
             counter++;
             continue;
         }
         else if(str[i]=='\\' && str[i+1]=='\\')
         {
-            strcat(result,"\\");
+            result[counter] = '\\';
             i+=2;
             counter++;
             continue;
         }
         else
         {
-            char temp1[2] = {str[i],'\0'};
-            strcat(result,temp1);
+            result[counter] = str[i];
             counter++;
             i++;
         }
-        printf("%s\n",result);
     }
-        //printf("asli : %s\nresult : %s\n",str,result);
 
     return result;
 }
@@ -2611,10 +2605,10 @@ int find_counter(char *address , char * str)
         str = copy_str;
         int str_lenght = strlen(str);
         FILE * file = fopen(address,"r");
-        char * a_line = (char*)malloc(100000*sizeof(char));
+        char * a_line = (char*)malloc(1000000*sizeof(char));
 
         int main_result = 0;
-        while(fgets(a_line,100000,file) != NULL)
+        while(fgets(a_line,1000000,file) != NULL)
         {
             int line_lenght = strlen(a_line);
             int result = -1;
@@ -2786,9 +2780,9 @@ void simple_grep(char * str ,int n ,char * addresses[n]) // n : number of files
     for(int j=0 ; j<n ; j++ )
     {
         FILE * file = fopen(addresses[j],"r");
-        char * a_line = (char*)malloc(100000*sizeof(char));
+        char * a_line = (char*)malloc(1000000*sizeof(char));
 
-        while(fgets(a_line,100000,file)!= NULL)
+        while(fgets(a_line,1000000,file)!= NULL)
         {
             int line_lenght = strlen(a_line);
 
@@ -2830,10 +2824,10 @@ void l_grep(char * str , int n , char * addresses[n])
     for(int j=0 ; j<n ; j++ )
     {
         FILE * file = fopen(addresses[j],"r");
-        char * a_line = (char*)malloc(100000*sizeof(char));
+        char * a_line = (char*)malloc(1000000*sizeof(char));
 
         char end = 0;
-        while(fgets(a_line,100000,file)!= NULL && !end)
+        while(fgets(a_line,1000000,file)!= NULL && !end)
         {
             int line_lenght = strlen(a_line);
 
@@ -2869,9 +2863,9 @@ int count_grep  (char * str ,int n ,char * addresses[n])
     for(int j=0 ; j<n ; j++ )
     {
         FILE * file = fopen(addresses[j],"r");
-        char * a_line = (char*)malloc(100000*sizeof(char));
+        char * a_line = (char*)malloc(1000000*sizeof(char));
 
-        while(fgets(a_line,100000,file)!= NULL)
+        while(fgets(a_line,1000000,file)!= NULL)
         {
             int line_lenght = strlen(a_line);
 
@@ -2933,7 +2927,7 @@ char tree(char * path, int depth_level , int final_depth)
         }
         printf("|__%s\n",file->d_name);
 
-        char * file_path = (char *)malloc(100000);
+        char * file_path = (char *)malloc(1000000);
         strcpy(file_path,path);
         if(file_path[strlen(path)-1]!='/')
         {
@@ -2951,13 +2945,13 @@ void closing_pair(char * address)
     backup_a_file(address);
     FILE * file = fopen(address,"r");
     FILE * temp_file = fopen("./temp/temp_closingPair.txt","w");
-    char * a_line= (char *)malloc(100000);
+    char * a_line= (char *)malloc(1000000);
 
 
     char flag = 1;
     int pairs = 0 ;
     char pre_char = '\n';
-    while(fgets(a_line,100000,file)!=NULL)
+    while(fgets(a_line,1000000,file)!=NULL)
     {
         pre_char = '\n';
         int space_number = 0;
@@ -3029,7 +3023,7 @@ void closing_pair(char * address)
     if(flag == 1){
         int tabs = 0;
         char pre_ch2 , pre_ch;
-        while(fgets(a_line,100000,temp_file)!=NULL)
+        while(fgets(a_line,1000000,temp_file)!=NULL)
         {
 
             if(a_line[0]=='}'){
@@ -3081,7 +3075,7 @@ void closing_pair(char * address)
     }
     else
     {
-        while(fgets(a_line,100000,temp_file)!=NULL)
+        while(fgets(a_line,1000000,temp_file)!=NULL)
         {
             for(int i=0; i<strlen(a_line); i++)
             {
@@ -3099,7 +3093,7 @@ void backup_a_file(char * address)
         i++;
     }
     i+=4;
-    char * path = (char*)malloc(100000);
+    char * path = (char*)malloc(1000000);
     strcpy(path,"./pre");
     strcat(path,address+i);
     //printf("%s\n",path);
@@ -3136,7 +3130,7 @@ void undo(char * address)
         i++;
     }
     i+=4;
-    char * path = (char*)malloc(100000);
+    char * path = (char*)malloc(1000000);
     strcpy(path,"./pre");
     strcat(path,address+i);
     //printf("%s\n",path);
@@ -3207,12 +3201,12 @@ int find2(char * address , char * pattern,int number)// number = 1 for simple fi
         char * str = strcopy;
         int str_lenght = strlen(str);
         FILE * file = fopen(address,"r");
-        char * a_line = (char*)malloc(100000*sizeof(char));
+        char * a_line = (char*)malloc(1000000*sizeof(char));
 
         int char_before = 0;
         int main_result = -1;
         int counter = 0;
-        while(fgets(a_line,100000,file) != NULL)
+        while(fgets(a_line,1000000,file) != NULL)
         {
             int line_lenght = strlen(a_line);
             int result = -1;
@@ -3259,7 +3253,7 @@ int find2(char * address , char * pattern,int number)// number = 1 for simple fi
         char * str = strcopy;
         int str_lenght = strlen(str);
         FILE * file = fopen(address,"r");
-        char * a_line = (char*)malloc(100000*sizeof(char));
+        char * a_line = (char*)malloc(1000000*sizeof(char));
         int word_number = 1 + count_space(str);
 
        // printf("%d ",word_number);
@@ -3267,7 +3261,7 @@ int find2(char * address , char * pattern,int number)// number = 1 for simple fi
         int char_before = 0;
         int main_result = -1;
         int counter = 0;
-        while(fgets(a_line,100000,file) != NULL)
+        while(fgets(a_line,1000000,file) != NULL)
         {
             int line_lenght = strlen(a_line);
            // printf("line_lenght %d ",line_lenght);
@@ -3429,7 +3423,7 @@ int convert2byword(int index ,char *address)
 }
 int * find_all(char * address , char * pattern)
 {
-    int * result = (int*)malloc(100000);
+    int * result = (int*)malloc(1000000);
     int a;
     int i = 0;
     do
@@ -3682,12 +3676,12 @@ int find2_output_arman(char * address , char * pattern,int number)// number = 1 
         char * str = strcopy;
         int str_lenght = strlen(str);
         FILE * file = fopen(address,"r");
-        char * a_line = (char*)malloc(100000*sizeof(char));
+        char * a_line = (char*)malloc(1000000*sizeof(char));
 
         int char_before = 0;
         int main_result = -1;
         int counter = 0;
-        while(fgets(a_line,100000,file) != NULL)
+        while(fgets(a_line,1000000,file) != NULL)
         {
             int line_lenght = strlen(a_line);
             int result = -1;
@@ -3737,7 +3731,7 @@ int find2_output_arman(char * address , char * pattern,int number)// number = 1 
         char * str = strcopy;
         int str_lenght = strlen(str);
         FILE * file = fopen(address,"r");
-        char * a_line = (char*)malloc(100000*sizeof(char));
+        char * a_line = (char*)malloc(1000000*sizeof(char));
         int word_number = 1 + count_space(str);
 
        // printf("%d ",word_number);
@@ -3745,7 +3739,7 @@ int find2_output_arman(char * address , char * pattern,int number)// number = 1 
         int char_before = 0;
         int main_result = -1;
         int counter = 0;
-        while(fgets(a_line,100000,file) != NULL)
+        while(fgets(a_line,1000000,file) != NULL)
         {
             int line_lenght = strlen(a_line);
            // printf("line_lenght %d ",line_lenght);
@@ -3845,15 +3839,15 @@ int find2_output_arman(char * address , char * pattern,int number)// number = 1 
 int find2_input_arman(char * address , char * pattern_address,int number)// number = 1 for simple find
 {
     FILE * file_temp = fopen(pattern_address,"r");
-    char * pattern = (char *)malloc(100000);
+    char * pattern = (char *)malloc(1000000);
     int i_temp = 0;
     int n_temp = 1;
     char ch_temp = fgetc(file_temp);
     while(ch_temp!=EOF)
     {
-        if(i_temp%100000==0 && i_temp!=0)
+        if(i_temp%1000000==0 && i_temp!=0)
         {
-            pattern = (char *)realloc((void*)pattern,n_temp*100000);
+            pattern = (char *)realloc((void*)pattern,n_temp*1000000);
             n_temp++;
         }
         pattern[i_temp] = ch_temp;
@@ -3892,12 +3886,12 @@ int find2_input_arman(char * address , char * pattern_address,int number)// numb
         char * str = strcopy;
         int str_lenght = strlen(str);
         FILE * file = fopen(address,"r");
-        char * a_line = (char*)malloc(100000*sizeof(char));
+        char * a_line = (char*)malloc(1000000*sizeof(char));
 
         int char_before = 0;
         int main_result = -1;
         int counter = 0;
-        while(fgets(a_line,100000,file) != NULL)
+        while(fgets(a_line,1000000,file) != NULL)
         {
             int line_lenght = strlen(a_line);
             int result = -1;
@@ -3944,7 +3938,7 @@ int find2_input_arman(char * address , char * pattern_address,int number)// numb
         char * str = strcopy;
         int str_lenght = strlen(str);
         FILE * file = fopen(address,"r");
-        char * a_line = (char*)malloc(100000*sizeof(char));
+        char * a_line = (char*)malloc(1000000*sizeof(char));
         int word_number = 1 + count_space(str);
 
        // printf("%d ",word_number);
@@ -3952,7 +3946,7 @@ int find2_input_arman(char * address , char * pattern_address,int number)// numb
         int char_before = 0;
         int main_result = -1;
         int counter = 0;
-        while(fgets(a_line,100000,file) != NULL)
+        while(fgets(a_line,1000000,file) != NULL)
         {
             int line_lenght = strlen(a_line);
            // printf("line_lenght %d ",line_lenght);
@@ -4051,7 +4045,7 @@ int find2_input_arman(char * address , char * pattern_address,int number)// numb
 }
 int * find_all_output_arman(char * address , char * pattern)
 {
-    int * result = (int*)malloc(100000);
+    int * result = (int*)malloc(1000000);
     int a;
     int i = 0;
     do
@@ -4078,7 +4072,7 @@ int * find_all_output_arman(char * address , char * pattern)
 }
 int * find_all_input_arman(char * address , char * pattern_address)
 {
-    int * result = (int*)malloc(100000);
+    int * result = (int*)malloc(1000000);
     int a;
     int i = 0;
     do
@@ -4109,15 +4103,15 @@ int * find_all_input_arman(char * address , char * pattern_address)
 char replace_input_arman(char * address , char * pattern_address ,char * str, int number) // return 1 for success and 0 for failure
 {
     FILE * file_temp = fopen(pattern_address,"r");
-    char * pattern = (char *)malloc(100000);
+    char * pattern = (char *)malloc(1000000);
     int i_temp = 0;
     int n_temp = 1;
     char ch_temp = fgetc(file_temp);
     while(ch_temp!=EOF)
     {
-        if(i_temp%100000==0 && i_temp!=0)
+        if(i_temp%1000000==0 && i_temp!=0)
         {
-            pattern = (char *)realloc((void*)pattern,n_temp*100000);
+            pattern = (char *)realloc((void*)pattern,n_temp*1000000);
             n_temp++;
         }
         pattern[i_temp] = ch_temp;
@@ -4146,15 +4140,15 @@ char replace_input_arman(char * address , char * pattern_address ,char * str, in
 char replace_all_input_arman(char * address , char * pattern_address ,char * str)
 {
     FILE * file_temp = fopen(pattern_address,"r");
-    char * pattern = (char *)malloc(100000);
+    char * pattern = (char *)malloc(1000000);
     int i_temp = 0;
     int n_temp = 1;
     char ch_temp = fgetc(file_temp);
     while(ch_temp!=EOF)
     {
-        if(i_temp%100000==0 && i_temp!=0)
+        if(i_temp%1000000==0 && i_temp!=0)
         {
-            pattern = (char *)realloc((void*)pattern,n_temp*100000);
+            pattern = (char *)realloc((void*)pattern,n_temp*1000000);
             n_temp++;
         }
         pattern[i_temp] = ch_temp;
@@ -4185,15 +4179,15 @@ char replace_all_input_arman(char * address , char * pattern_address ,char * str
 void simple_grep_input_arman(char * str_address ,int n ,char * addresses[n]) // n : number of files
 {
     FILE * file_temp = fopen(str_address,"r");
-    char * str = (char *)malloc(100000);
+    char * str = (char *)malloc(1000000);
     int i_temp = 0;
     int n_temp = 1;
     char ch_temp = fgetc(file_temp);
     while(ch_temp!=EOF)
     {
-        if(i_temp%100000==0 && i_temp!=0)
+        if(i_temp%1000000==0 && i_temp!=0)
         {
-            str = (char *)realloc((void*)str,n_temp*100000);
+            str = (char *)realloc((void*)str,n_temp*1000000);
             n_temp++;
         }
         str[i_temp] = ch_temp;
@@ -4209,9 +4203,9 @@ void simple_grep_input_arman(char * str_address ,int n ,char * addresses[n]) // 
     for(int j=0 ; j<n ; j++ )
     {
         FILE * file = fopen(addresses[j],"r");
-        char * a_line = (char*)malloc(100000*sizeof(char));
+        char * a_line = (char*)malloc(1000000*sizeof(char));
 
-        while(fgets(a_line,100000,file)!= NULL)
+        while(fgets(a_line,1000000,file)!= NULL)
         {
             int line_lenght = strlen(a_line);
 
@@ -4252,9 +4246,9 @@ void simple_grep_output_arman(char * str ,int n ,char * addresses[n]) // n : num
     for(int j=0 ; j<n ; j++ )
     {
         FILE * file = fopen(addresses[j],"r");
-        char * a_line = (char*)malloc(100000*sizeof(char));
+        char * a_line = (char*)malloc(1000000*sizeof(char));
 
-        while(fgets(a_line,100000,file)!= NULL)
+        while(fgets(a_line,1000000,file)!= NULL)
         {
             int line_lenght = strlen(a_line);
 
@@ -4290,15 +4284,15 @@ void simple_grep_output_arman(char * str ,int n ,char * addresses[n]) // n : num
 void l_grep_input_arman(char * str_address , int n , char * addresses[n])
 {
     FILE * file_temp = fopen(str_address,"r");
-    char * str = (char *)malloc(100000);
+    char * str = (char *)malloc(1000000);
     int i_temp = 0;
     int n_temp = 1;
     char ch_temp = fgetc(file_temp);
     while(ch_temp!=EOF)
     {
-        if(i_temp%100000==0 && i_temp!=0)
+        if(i_temp%1000000==0 && i_temp!=0)
         {
-            str = (char *)realloc((void*)str,n_temp*100000);
+            str = (char *)realloc((void*)str,n_temp*1000000);
             n_temp++;
         }
         str[i_temp] = ch_temp;
@@ -4313,10 +4307,10 @@ void l_grep_input_arman(char * str_address , int n , char * addresses[n])
     for(int j=0 ; j<n ; j++ )
     {
         FILE * file = fopen(addresses[j],"r");
-        char * a_line = (char*)malloc(100000*sizeof(char));
+        char * a_line = (char*)malloc(1000000*sizeof(char));
 
         char end = 0;
-        while(fgets(a_line,100000,file)!= NULL && !end)
+        while(fgets(a_line,1000000,file)!= NULL && !end)
         {
             int line_lenght = strlen(a_line);
 
@@ -4348,10 +4342,10 @@ void l_grep_output_arman(char * str , int n , char * addresses[n])
     for(int j=0 ; j<n ; j++ )
     {
         FILE * file = fopen(addresses[j],"r");
-        char * a_line = (char*)malloc(100000*sizeof(char));
+        char * a_line = (char*)malloc(1000000*sizeof(char));
 
         char end = 0;
-        while(fgets(a_line,100000,file)!= NULL && !end)
+        while(fgets(a_line,1000000,file)!= NULL && !end)
         {
             int line_lenght = strlen(a_line);
 
@@ -4379,15 +4373,15 @@ void l_grep_output_arman(char * str , int n , char * addresses[n])
 int count_grep_input_arman  (char * str_address ,int n ,char * addresses[n])
 {
     FILE * file_temp = fopen(str_address,"r");
-    char * str = (char *)malloc(100000);
+    char * str = (char *)malloc(1000000);
     int i_temp = 0;
     int n_temp = 1;
     char ch_temp = fgetc(file_temp);
     while(ch_temp!=EOF)
     {
-        if(i_temp%100000==0 && i_temp!=0)
+        if(i_temp%1000000==0 && i_temp!=0)
         {
-            str = (char *)realloc((void*)str,n_temp*100000);
+            str = (char *)realloc((void*)str,n_temp*1000000);
             n_temp++;
         }
         str[i_temp] = ch_temp;
@@ -4403,9 +4397,9 @@ int count_grep_input_arman  (char * str_address ,int n ,char * addresses[n])
     for(int j=0 ; j<n ; j++ )
     {
         FILE * file = fopen(addresses[j],"r");
-        char * a_line = (char*)malloc(100000*sizeof(char));
+        char * a_line = (char*)malloc(1000000*sizeof(char));
 
-        while(fgets(a_line,100000,file)!= NULL)
+        while(fgets(a_line,1000000,file)!= NULL)
         {
             int line_lenght = strlen(a_line);
 
@@ -4437,9 +4431,9 @@ int count_grep_output_arman  (char * str ,int n ,char * addresses[n])
     for(int j=0 ; j<n ; j++ )
     {
         FILE * file = fopen(addresses[j],"r");
-        char * a_line = (char*)malloc(100000*sizeof(char));
+        char * a_line = (char*)malloc(1000000*sizeof(char));
 
-        while(fgets(a_line,100000,file)!= NULL)
+        while(fgets(a_line,1000000,file)!= NULL)
         {
             int line_lenght = strlen(a_line);
 
@@ -4496,7 +4490,7 @@ char tree_output_arman_komaki(char * path, int depth_level , int final_depth , F
         }
         fprintf(file_temp,"|__%s\n",file->d_name);
 
-        char * file_path = (char *)malloc(100000);
+        char * file_path = (char *)malloc(1000000);
         strcpy(file_path,path);
         if(file_path[strlen(path)-1]!='/')
         {
@@ -4523,20 +4517,20 @@ void line_compare_output_arman(char * address1 , char * address2)
     FILE * file1 = fopen(address1,"r");
     FILE * file2 = fopen(address2,"r");
 
-    char * str1 = (char*)malloc(100000*sizeof(char));
-    char * str2 = (char*)malloc(100000*sizeof(char));
+    char * str1 = (char*)malloc(1000000*sizeof(char));
+    char * str2 = (char*)malloc(1000000*sizeof(char));
 
     int finish1 = 0;
     int finish2 = 0;
     int line = 1;
     while (1)
     {
-        if(fgets(str1,100000,file1) == NULL)
+        if(fgets(str1,1000000,file1) == NULL)
         {
             finish1 = 1;
         }
 
-        if(fgets(str2,100000,file2) == NULL)
+        if(fgets(str2,1000000,file2) == NULL)
         {
             finish2 = 1;
         }
@@ -4545,7 +4539,7 @@ void line_compare_output_arman(char * address1 , char * address2)
             break;
         }
 
-        for(int i=0; i<100000; i++)
+        for(int i=0; i<1000000; i++)
         {
             if(str2[i]=='\0'&&str2[i-1]!='\n')
             {
@@ -4556,7 +4550,7 @@ void line_compare_output_arman(char * address1 , char * address2)
                 break;
 
         }
-        for(int i=0; i<100000; i++)
+        for(int i=0; i<1000000; i++)
         {
             if(str1[i]=='\0'&&str1[i-1]!='\n')
             {
@@ -4586,7 +4580,7 @@ void line_compare_output_arman(char * address1 , char * address2)
         int finish_line = line-1;
         while (!finish1)
         {
-            if(fgets(str1,100000,file1) == NULL)
+            if(fgets(str1,1000000,file1) == NULL)
             {
                 finish1 = 1;
             }
@@ -4598,12 +4592,12 @@ void line_compare_output_arman(char * address1 , char * address2)
         file1 = fopen(address1,"r");
         for(int i=1 ;i<start_line ; i++)
         {
-            fgets(str1,100000,file1);
+            fgets(str1,1000000,file1);
         }
         for(int i=start_line ;i<=finish_line ; i++)
         {
-            fgets(str1,100000,file1);
-            for(int i=0; i<100000; i++)
+            fgets(str1,1000000,file1);
+            for(int i=0; i<1000000; i++)
             {
             if(str1[i]=='\0'&&str1[i-1]!='\n')
             {
@@ -4624,7 +4618,7 @@ void line_compare_output_arman(char * address1 , char * address2)
         int finish_line = line-1;
         while (!finish2)
         {
-            if(fgets(str2,100000,file2) == NULL)
+            if(fgets(str2,1000000,file2) == NULL)
             {
                 finish2 = 1;
             }
@@ -4636,12 +4630,12 @@ void line_compare_output_arman(char * address1 , char * address2)
         file2 = fopen(address2,"r");
         for(int i=1 ;i<start_line ; i++)
         {
-            fgets(str2,100000,file2);
+            fgets(str2,1000000,file2);
         }
         for(int i=start_line ;i<=finish_line ; i++)
         {
-            fgets(str2,100000,file2);
-            for(int i=0; i<100000; i++)
+            fgets(str2,1000000,file2);
+            for(int i=0; i<1000000; i++)
             {
             if(str2[i]=='\0'&&str2[i-1]!='\n')
             {
