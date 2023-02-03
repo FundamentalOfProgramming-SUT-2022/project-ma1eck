@@ -121,15 +121,26 @@ char * first_str2(char*str);
 int count_in_str(char * str , char ch);
 char check_address(char * address);
 //---------------phase 2-----------------------
-void print_bord(char * address ,char * vim_status);
+void print_bord(char * address );
 char * get_command();
 char execute();
+void move_curser(int mv);
 
 
 
 // definitions -----
 
 int MAX_LINE = 30;
+int cursor_pos[2] ;
+char * vim_status ;
+char * file_address; // it is what you see in vim page
+char * live_file_address = "./temp/temp_live.txt";
+char isSaved;
+    //--cursor limimts ----
+    int cursor_limit_y_min ;
+    int cursor_limit_y_max ;
+    int cursor_limit_x_min ;
+    int * cursor_limit_x_max;
 //------------------
 
 
@@ -192,7 +203,7 @@ void master()
             create_folder(temp);
             create_file(address);
             //printf("%s\n",address);
-            printf("done\n");
+            printw("done\n");
         }
         else if(strcmp(command,"insertstr")==0) // insertstr --file /root/dir1/dir2/file.txt --str Salam –pos 2:5
         {
@@ -266,12 +277,12 @@ void master()
             //printf("file   : %s\n",address);
             if(check_folder_address(temp)==0)
             {
-                printf("invalid address\n");
+                printw("invalid address\n");
                 continue;
             }
             if(check_file_address(address)==0)
             {
-                printf("invalid file name\n");
+                printw("invalid file name\n");
                 continue;
             }
             char * str = (char *)malloc(100000);
@@ -378,7 +389,7 @@ void master()
                 }
             }
             insert(address,line,pos,str);
-            printf("done\n");
+            printw("done\n");
 
 
 
@@ -427,17 +438,17 @@ void master()
             temp[flag] = '\0';
 	    if(check_folder_address(temp)==0)
             {
-                printf("invalid address\n");
+                printw("invalid address\n");
                 continue;
             }
             if(check_file_address(address)==0)
             {
-                printf("invalid file name\n");
+                printw("invalid file name\n");
                 continue;
             }
             cat_print(address);
 
-            printf("done\n");
+            printw("done\n");
         }
         else if(strcmp(command,"removestr")==0) //  --file /root/file1.txt --pos 2:1 -size 3 -b
         {
@@ -466,12 +477,12 @@ void master()
 
             if(check_folder_address(temp)==0)
             {
-                printf("invalid address\n");
+                printw("invalid address\n");
                 continue;
             }
             if(check_file_address(address)==0)
             {
-                printf("invalid file name\n");
+                printw("invalid file name\n");
                 continue;
             }
             flag = 0;
@@ -532,7 +543,7 @@ void master()
             }
             char direction = input[flag+1];
             remove_by_index(address,line,pos,size,direction);
-            printf("done\n");
+            printw("done\n");
 
 
         }
@@ -563,12 +574,12 @@ void master()
 
             if(check_folder_address(temp)==0)
             {
-                printf("invalid address\n");
+                printw("invalid address\n");
                 continue;
             }
             if(check_file_address(address)==0)
             {
-                printf("invalid file name\n");
+                printw("invalid file name\n");
                 continue;
             }
             flag = 0;
@@ -629,7 +640,7 @@ void master()
             }
             char direction = input[flag+1];
             copy_to_clipboard(address,line,pos,size,direction);
-            printf("done\n");
+            printw("done\n");
 
 
         }
@@ -660,12 +671,12 @@ void master()
 
             if(check_folder_address(temp)==0)
             {
-                printf("invalid address\n");
+                printw("invalid address\n");
                 continue;
             }
             if(check_file_address(address)==0)
             {
-                printf("invalid file name\n");
+                printw("invalid file name\n");
                 continue;
             }
             flag = 0;
@@ -726,7 +737,7 @@ void master()
             }
             char direction = input[flag+1];
             cut_to_clipboard(address,line,pos,size,direction);
-            printf("done\n");
+            printw("done\n");
 
 
         }
@@ -802,12 +813,12 @@ void master()
             //printf("file   : %s\n",address);
             if(check_folder_address(temp)==0)
             {
-                printf("invalid address\n");
+                printw("invalid address\n");
                 continue;
             }
             if(check_file_address(address)==0)
             {
-                printf("invalid file name\n");
+                printw("invalid file name\n");
                 continue;
             }
             char * str = (char *)malloc(100000);
@@ -913,7 +924,7 @@ void master()
                 }
             }
             insert_from_clipboard(address,line,pos);
-            printf("done\n");
+            printw("done\n");
 
 
 
@@ -965,17 +976,17 @@ void master()
             temp = convert_input_address(temp);
             if(check_folder_address(temp)==0)
             {
-                printf("invalid address\n");
+                printw("invalid address\n");
                 continue;
             }
             if(check_file_address(address)==0)
             {
-                printf("invalid file name\n");
+                printw("invalid file name\n");
                 continue;
             }
             undo(address);
 
-            printf("done\n");
+            printw("done\n");
         }
         else if(strcmp(command,"auto-indent")==0) // auto-indent --file root/test.txt
         {
@@ -1023,17 +1034,17 @@ void master()
             temp = convert_input_address(temp);
             if(check_folder_address(temp)==0)
             {
-                printf("invalid address\n");
+                printw("invalid address\n");
                 continue;
             }
             if(check_file_address(address)==0)
             {
-                printf("invalid file name\n");
+                printw("invalid file name\n");
                 continue;
             }
             closing_pair(address);
 
-            printf("done\n");
+            printw("done\n");
         }
         else if(strcmp(command,"tree")==0) //tree 1
         {
@@ -1054,7 +1065,7 @@ void master()
             //printf("%s ",depth_str);
             if(depth<-1)
             {
-                printf("invalid depth\n");
+                printw("invalid depth\n");
                 continue;
             }
             tree("root",0,depth);
@@ -1108,12 +1119,12 @@ void master()
             //printf("%s \n",temp);
             if(check_folder_address(temp1)==0)
             {
-                printf("first file : invalid address\n");
+                printw("first file : invalid address\n");
                 continue;
             }
             if(check_file_address(address1)==0)
             {
-                printf("first file : invalid file name\n");
+                printw("first file : invalid file name\n");
                 continue;
             }
 
@@ -1129,12 +1140,12 @@ void master()
             //printf("%s \n",temp);
             if(check_folder_address(temp2)==0)
             {
-                printf("second file : invalid address\n");
+                printw("second file : invalid address\n");
                 continue;
             }
             if(check_file_address(address2)==0)
             {
-                printf("second file : invalid file name\n");
+                printw("second file : invalid file name\n");
                 continue;
             }
 
@@ -1213,12 +1224,12 @@ void master()
             //printf("file   : %s\n",address);
             if(check_folder_address(temp)==0)
             {
-                printf("invalid address\n");
+                printw("invalid address\n");
                 continue;
             }
             if(check_file_address(address)==0)
             {
-                printf("invalid file name\n");
+                printw("invalid file name\n");
                 continue;
             }
             char * str = (char *)malloc(100000);
@@ -1303,7 +1314,7 @@ void master()
                 if (flag!=-1)
                     str[flag]= '\0';
             }
-           // printf("address : %s\nstr : %s",address,str);
+           // printw("address : %s\nstr : %s",address,str);
             str = convert_input_str(str);
             int number = count_in_str(input,'-') - count_in_str(address,'-') - count_in_str(str,'-');
             int at = -1 ;
@@ -1311,7 +1322,7 @@ void master()
 
             if(number==4)
             {
-               printf("%d\n",find2(address,str,1));
+               printw("%d\n",find2(address,str,1));
                continue;
             }
             else if(number==5)
@@ -1327,12 +1338,12 @@ void master()
                 char * attribute = nth_word(input+flag+1,1);
                 if(strcmp(attribute,"byword")==0)
                 {
-                    printf("%d\n",convert2byword(find2(address,str,1),address));
+                    printw("%d\n",convert2byword(find2(address,str,1),address));
                     continue;
                 }
                 else if(strcmp(attribute,"count")==0)
                 {
-                    printf("%d\n",find_counter(address,str));
+                    printw("%d\n",find_counter(address,str));
                     continue;
                 }
                 else if(strcmp(attribute,"all")==0)
@@ -1341,14 +1352,14 @@ void master()
                     int j =0 ;
                     while (out[j]!=-1)
                     {
-                        printf("%d ",out[j]);
+                        printw("%d ",out[j]);
                         j++;
                     }
                     if(j==0)
                     {
-                        printf("-1");
+                        printw("-1");
                     }
-                    printf("\n");
+                    printw("\n");
                 }
                 else if(strcmp(attribute,"at")==0)
                 {
@@ -1359,11 +1370,11 @@ void master()
                         at *=10 ;
                         at += at_str[i]-'0';
                     }
-                    printf("%d\n",find2(address,str,at));
+                    printw("%d\n",find2(address,str,at));
                 }
                 else
                 {
-                    printf("invalid attribute");
+                    printw("invalid attribute");
                     continue;
                 }
                 continue;
@@ -1405,7 +1416,7 @@ void master()
                 }
                 else
                 {
-                        printf("invalid attribute");
+                        printw("invalid attribute");
                     continue;
                 }
                 int all_ = count_in_str(input,'-');
@@ -1448,20 +1459,20 @@ void master()
                 }
                 else
                 {
-                    printf("invalid attribute\n");
+                    printw("invalid attribute\n");
                     continue;
                 }
 
                 if(count == 1 || (at!=-1 && all==1) || byword == 0)
                 {
-                    printf("invalid attribute\n");
+                    printw("invalid attribute\n");
                     continue;
                 }
                 else
                 {
                     if(at != -1)
                     {
-                        printf("%d\n",convert2byword(find2(address,str,at),address));
+                        printw("%d\n",convert2byword(find2(address,str,at),address));
                         continue;
                     }
                     else if(all==1 )
@@ -1470,19 +1481,19 @@ void master()
                         int j =0 ;
                         while (out[j]!=-1)
                         {
-                            printf("%d ",convert2byword(out[j],address));
+                            printw("%d ",convert2byword(out[j],address));
                             j++;
                         }
                         if(j==0)
                         {
-                            printf("-1");
+                            printw("-1");
                         }
-                        printf("\n");
+                        printw("\n");
                         continue;
                     }
                     else
                     {
-                        printf("invalid attribute\n");
+                        printw("invalid attribute\n");
                         continue;
                     }
                 }
@@ -1490,7 +1501,7 @@ void master()
             }
             else
             {
-                 printf("invalid attribute");
+                 printw("invalid attribute");
                 continue;
             }
 
@@ -1566,12 +1577,12 @@ void master()
             //printf("file   : %s\n",address);
             if(check_folder_address(temp)==0)
             {
-                printf("invalid address\n");
+                printw("invalid address\n");
                 continue;
             }
             if(check_file_address(address)==0)
             {
-                printf("invalid file name\n");
+                printw("invalid file name\n");
                 continue;
             }
             char * str = (char *)malloc(100000);
@@ -1656,7 +1667,7 @@ void master()
                 if (flag!=-1)
                     str[flag]= '\0';
             }
-           // printf("address : %s\nstr : %s",address,str);
+           // printw("address : %s\nstr : %s",address,str);
             //str = convert_input_str(str);
             int temp_number = strlen("replace --str1 ") + strlen(str) + strlen(" --file ") + strlen(address);
             flag = 0;
@@ -1669,7 +1680,7 @@ void master()
                 }
             }
             char * str2 = first_str2(input+flag+strlen("--str2 "));
-           // printf("-%s-\n",str);
+           // printw("-%s-\n",str);
             str2 = convert_input_str(str2);
             int number = count_in_str(input,'-') - count_in_str(address,'-') - count_in_str(str,'-') - count_in_str(str2,'-');
             int at = -1 ;
@@ -1678,9 +1689,9 @@ void master()
             if(number==6)
             {
                 if(1==replace(address,str,str2,1))
-                    printf("done\n");
+                    printw("done\n");
                 else
-                    printf("-1\n");
+                    printw("-1\n");
                 continue;
             }
             else if(number==7)
@@ -1698,9 +1709,9 @@ void master()
                 if(strcmp(attribute,"all")==0)
                 {
                     if(1==replace_all(address,str,str2))
-                        printf("done\n");
+                        printw("done\n");
                     else
-                        printf("-1\n");
+                        printw("-1\n");
                     continue;
                 }
 
@@ -1714,14 +1725,14 @@ void master()
                         at += at_str[i]-'0';
                     }
                     if(1==replace(address,str,str2,at))
-                        printf("done\n");
+                        printw("done\n");
                     else
-                        printf("-1\n");
+                        printw("-1\n");
                     continue;
                 }
                 else
                 {
-                    printf("invalid attribute");
+                    printw("invalid attribute");
                     continue;
                 }
                 continue;
@@ -1730,7 +1741,7 @@ void master()
            }
             else
             {
-                printf("invalid input\n");
+                printw("invalid input\n");
             }
 
 
@@ -1835,7 +1846,7 @@ void master()
             else if(attribute=='c')
             {
                 //printf("attribute c\n");
-                printf("%d\n",count_grep(str,number_of_addresses,addresses));
+                printw("%d\n",count_grep(str,number_of_addresses,addresses));
                 continue;
             }
             else if(attribute == 'l')
@@ -1848,7 +1859,7 @@ void master()
 
         else
         {
-            printf("invalid command\n");
+            printw("invalid command\n");
         }
     }
 
@@ -1862,17 +1873,32 @@ void master()
 // cd /mnt/d/daneshgah/c/FOP\ project/
 int main()
 {
+    create_file("./root/t.txt");
+    // definition
+    vim_status = (char *)malloc(10);
+    strcpy(vim_status,"NORMAL");
+    file_address = (char *)malloc(1000000);
+    strcpy(file_address,"temp/test.txt");
+    isSaved = 1;
+        //--cursor limimts ----
+        cursor_limit_y_min = 1;
+        cursor_limit_y_max = MAX_LINE;
+        cursor_limit_x_min = 4 ;
+        cursor_limit_x_max = (int *)malloc((MAX_LINE+1)*sizeof(int));
+
+    cursor_pos[0] = cursor_limit_y_min ; cursor_pos[1] = cursor_limit_x_min;
+    //-----------
     //initialize();
     //master();
 
-    print_bord("./temp/test.txt","NORMAL");
+    print_bord("./temp/test.txt");
     while(execute())
     {
-        print_bord("","NORMAL");
+        //print_bord("","NORMAL");
     }
 
     //printf("%d",getch());
-    get_command();
+    //get_command();
     endwin();
 
 	return 0;
@@ -1932,7 +1958,7 @@ char * read_file(char * address) // this is a valid address , return a string th
     fclose(file);
     return result;
 
-}// printf("%s",read_file("./root/test.txt"));
+}// printw("%s",read_file("./root/test.txt"));
 void insert(char * address,int line_number , int start_pos,char * inserting_str) // must first convert the input string
 {
     backup_a_file(address);
@@ -2313,9 +2339,9 @@ void line_compare(char * address1 , char * address2) // this function print the 
 
         if(strcmp(str1,str2) != 0 )
         {
-            printf("============ #%d ============\n",line);
-            printf("%s",str1);
-            printf("%s",str2);
+            printw("============ #%d ============\n",line);
+            printw("%s",str1);
+            printw("%s",str2);
 
         }
 
@@ -2336,7 +2362,7 @@ void line_compare(char * address1 , char * address2) // this function print the 
             finish_line++;
         }
         fclose(file1);
-        printf("<<<<<<<<<<<< #%d - #%d<<<<<<<<<<<<\n",start_line,finish_line);
+        printw("<<<<<<<<<<<< #%d - #%d<<<<<<<<<<<<\n",start_line,finish_line);
 
         file1 = fopen(address1,"r");
         for(int i=1 ;i<start_line ; i++)
@@ -2355,7 +2381,7 @@ void line_compare(char * address1 , char * address2) // this function print the 
             if(str1[i] == '\0')
                 break;
             }
-            printf("%s",str1);
+            printw("%s",str1);
         }
         fclose(file1);
         return;
@@ -2374,7 +2400,7 @@ void line_compare(char * address1 , char * address2) // this function print the 
             finish_line++;
         }
         fclose(file2);
-        printf(">>>>>>>>>>>> #%d - #%d>>>>>>>>>>>>\n",start_line,finish_line);
+        printw(">>>>>>>>>>>> #%d - #%d>>>>>>>>>>>>\n",start_line,finish_line);
 
         file2 = fopen(address2,"r");
         for(int i=1 ;i<start_line ; i++)
@@ -2393,7 +2419,7 @@ void line_compare(char * address1 , char * address2) // this function print the 
             if(str2[i] == '\0')
                 break;
             }
-            printf("%s",str2);
+            printw("%s",str2);
         }
         fclose(file2);
         return;
@@ -2482,7 +2508,7 @@ void simple_find(char *address , char * str)
 
             char_before +=line_lenght;
         }
-        printf("result : %d",main_result);
+        printw("result : %d",main_result);
 
 
         fclose(file);
@@ -2509,7 +2535,7 @@ void simple_find(char *address , char * str)
                 }
                 char_before +=line_lenght;
             }
-            printf("result : %d",main_result);
+            printw("result : %d",main_result);
 
             fclose(file);
         }
@@ -2533,7 +2559,7 @@ void simple_find(char *address , char * str)
                 }
                 char_before +=line_lenght;
             }
-            printf("result : %d",main_result);
+            printw("result : %d",main_result);
 
             fclose(file);
         }
@@ -2576,7 +2602,7 @@ char * convert_input_str(char * str)
             counter++;
             i++;
         }
-        printf("%s\n",result);
+        printw("%s\n",result);
     }
         //printf("asli : %s\nresult : %s\n",str,result);
 
@@ -2694,7 +2720,7 @@ char * nth_word(char * str,int n)
             result[counter] = str[i];
         }
         counter++;
-   // printf("*");
+   // printw("*");
     }
     result[0] = '\0';
     return result;
@@ -2823,10 +2849,10 @@ void simple_grep(char * str ,int n ,char * addresses[n]) // n : number of files
                 int comp_result = strcmp2(a_line+i,str,str_lenght);
                 if(comp_result==1)
                 {
-                    printf("%s: %s",addresses[j],a_line);
+                    printw("%s: %s",addresses[j],a_line);
                     if(a_line[line_lenght-1]!='\n')
                     {
-                        printf("\n");
+                        printw("\n");
                     }
                     flag = 1;
                     break;
@@ -2843,7 +2869,7 @@ void simple_grep(char * str ,int n ,char * addresses[n]) // n : number of files
     }
     if(flag == 0)
     {
-        printf("-1\n");
+        printw("-1\n");
     }
 
 
@@ -2869,7 +2895,7 @@ void l_grep(char * str , int n , char * addresses[n])
                 if(comp_result==1)
                 {
                     flag2 = 1;
-                    printf("%s\n",addresses[j]);
+                    printw("%s\n",addresses[j]);
                     end = 1;
                     break;
 
@@ -2885,7 +2911,7 @@ void l_grep(char * str , int n , char * addresses[n])
     }
     if(flag2 == 0)
     {
-        printf("-1\n");
+        printw("-1\n");
     }
 }
 int count_grep  (char * str ,int n ,char * addresses[n])
@@ -2955,9 +2981,9 @@ char tree(char * path, int depth_level , int final_depth)
 
         for(int i=0 ; i<depth_level ; i++)
         {
-            printf("|  ");
+            printw("|  ");
         }
-        printf("|__%s\n",file->d_name);
+        printw("|__%s\n",file->d_name);
 
         char * file_path = (char *)malloc(100000);
         strcpy(file_path,path);
@@ -3288,7 +3314,7 @@ int find2(char * address , char * pattern,int number)// number = 1 for simple fi
         char * a_line = (char*)malloc(100000*sizeof(char));
         int word_number = 1 + count_space(str);
 
-       // printf("%d ",word_number);
+       // printw("%d ",word_number);
 
         int char_before = 0;
         int main_result = -1;
@@ -3296,7 +3322,7 @@ int find2(char * address , char * pattern,int number)// number = 1 for simple fi
         while(fgets(a_line,100000,file) != NULL)
         {
             int line_lenght = strlen(a_line);
-           // printf("line_lenght %d ",line_lenght);
+           // printw("line_lenght %d ",line_lenght);
             int result = -1;
             int flag = 0;
             //printf("%d",count_space(a_line)+1);
@@ -3478,7 +3504,7 @@ int * find_all(char * address , char * pattern)
     int i = 0;
     while(result[i]!=-1)
     {
-        printf("%d ",result[i]);
+        printw("%d ",result[i]);
         i++;
     }
 */
@@ -3609,7 +3635,7 @@ void cat_print(char * address) // this is a valid address
     FILE * file = fopen(address,"r");
     do {
         ch = fgetc(file);
-        printf("%c",ch);
+        printw("%c",ch);
     } while (ch != EOF);
     fclose(file);
 
@@ -3766,7 +3792,7 @@ int find2_output_arman(char * address , char * pattern,int number)// number = 1 
         char * a_line = (char*)malloc(100000*sizeof(char));
         int word_number = 1 + count_space(str);
 
-       // printf("%d ",word_number);
+       // printw("%d ",word_number);
 
         int char_before = 0;
         int main_result = -1;
@@ -3774,7 +3800,7 @@ int find2_output_arman(char * address , char * pattern,int number)// number = 1 
         while(fgets(a_line,100000,file) != NULL)
         {
             int line_lenght = strlen(a_line);
-           // printf("line_lenght %d ",line_lenght);
+           // printw("line_lenght %d ",line_lenght);
             int result = -1;
             int flag = 0;
             //printf("%d",count_space(a_line)+1);
@@ -3973,7 +3999,7 @@ int find2_input_arman(char * address , char * pattern_address,int number)// numb
         char * a_line = (char*)malloc(100000*sizeof(char));
         int word_number = 1 + count_space(str);
 
-       // printf("%d ",word_number);
+       // printw("%d ",word_number);
 
         int char_before = 0;
         int main_result = -1;
@@ -3981,7 +4007,7 @@ int find2_input_arman(char * address , char * pattern_address,int number)// numb
         while(fgets(a_line,100000,file) != NULL)
         {
             int line_lenght = strlen(a_line);
-           // printf("line_lenght %d ",line_lenght);
+           // printw("line_lenght %d ",line_lenght);
             int result = -1;
             int flag = 0;
             //printf("%d",count_space(a_line)+1);
@@ -4083,7 +4109,7 @@ int * find_all_output_arman(char * address , char * pattern)
     do
     {
         a = find2(address,pattern,i+1);
-       // printf("(%d,%d)",a,i);
+       // printw("(%d,%d)",a,i);
         result[i] = a;
         i++;
     }
@@ -4110,7 +4136,7 @@ int * find_all_input_arman(char * address , char * pattern_address)
     do
     {
         a = find2_input_arman(address,pattern_address,i+1);
-       // printf("(%d,%d)",a,i);
+       // printw("(%d,%d)",a,i);
         result[i] = a;
         i++;
     }
@@ -4127,7 +4153,7 @@ int * find_all_input_arman(char * address , char * pattern_address)
     int i = 0;
     while(result[i]!=-1)
     {
-        printf("%d ",result[i]);
+        printw("%d ",result[i]);
         i++;
     }
 */
@@ -4246,10 +4272,10 @@ void simple_grep_input_arman(char * str_address ,int n ,char * addresses[n]) // 
                 int comp_result = strcmp2(a_line+i,str,str_lenght);
                 if(comp_result==1)
                 {
-                    printf("%s: %s",addresses[j],a_line);
+                    printw("%s: %s",addresses[j],a_line);
                     if(a_line[line_lenght-1]!='\n')
                     {
-                        printf("\n");
+                        printw("\n");
                     }
                     flag = 1;
                     break;
@@ -4266,7 +4292,7 @@ void simple_grep_input_arman(char * str_address ,int n ,char * addresses[n]) // 
     }
     if(flag == 0)
     {
-        printf("-1\n");
+        printw("-1\n");
     }
 
 }
@@ -4351,7 +4377,7 @@ void l_grep_input_arman(char * str_address , int n , char * addresses[n])
                 int comp_result = strcmp2(a_line+i,str,str_lenght);
                 if(comp_result==1)
                 {
-                    printf("%s\n",addresses[j]);
+                    printw("%s\n",addresses[j]);
                     end = 1;
                     break;
 
@@ -4847,72 +4873,20 @@ char check_address(char * address)
     //printf("file   : %s\n",address);
     if(check_folder_address(temp)==0)
     {
-        printf("invalid address\n");
+        //printw("invalid address\n");
         return 0;
     }
     if(check_file_address(address)==0)
     {
-        printf("invalid file name\n");
+       // printw("invalid file name\n");
         return 0;
     }
     return 1;
 }
 //----------------------------------phase 2------------------------------------------------
-void print_bord(char * address , char * vim_status)
+void print_bord(char * address )
 {
-    if(strlen(address)==0)
-    {
-        int MAX_LINE = 30;
-
-        initscr();
-        start_color();
-        move(0,2);
-        init_pair(1,COLOR_YELLOW,COLOR_BLACK);
-        init_pair(2,COLOR_WHITE,COLOR_CYAN);
-        init_pair(3,COLOR_WHITE,8); // bar line
-
-        attron(COLOR_PAIR(2));
-        printw("%s",vim_status);
-        attroff(COLOR_PAIR(2));
-        attron(COLOR_PAIR(1));
-        printw(" %s",address);
-
-        for(int i=1 ;i<=MAX_LINE;i++ )
-        {
-            move(i,0);
-            printw("%2d",i);
-        }
-        for(int i=1 ;i<=MAX_LINE;i++ )
-        {
-            move(i,2);
-            printw("|");
-        }
-
-
-
-
-        attroff(COLOR_PAIR(1));
-        move(MAX_LINE+2,0);
-        attron(COLOR_PAIR(3));
-        printw("type here                                           \n");
-        attroff(COLOR_PAIR(3));
-        move(MAX_LINE+2,0);
-        refresh();
-
-        return ;
-    }
     int MAX_LINE = 30;
-
-    int flag2 = 0;
-    for(int i= 0 ;i<10 ; i++)
-    {
-        if(address[i]=='r')
-        {
-            flag2 =i;
-            break;
-        }
-    }
-    address+=flag2;
 	initscr();
 	clear();
     raw();
@@ -4923,10 +4897,14 @@ void print_bord(char * address , char * vim_status)
     init_pair(3,COLOR_WHITE,8); // bar line
 
     attron(COLOR_PAIR(2));
-    printw("%s",vim_status);
+    printw("%s ",vim_status);
     attroff(COLOR_PAIR(2));
     attron(COLOR_PAIR(1));
-    printw(" %s",address);
+    if(isSaved==0)
+    {
+        printw(" *",file_address);
+    }
+    printw(" %s",file_address);
 
     for(int i=1 ;i<=MAX_LINE;i++ )
     {
@@ -4957,6 +4935,7 @@ void print_bord(char * address , char * vim_status)
             line[strlen(line)-1] = '\0';
         }
         printw("%s",line);
+        cursor_limit_x_max[i] = cursor_limit_x_min + strlen(line) -2;
         i++;
     }
     fclose(file);
@@ -4965,9 +4944,11 @@ void print_bord(char * address , char * vim_status)
     {
         move(MAX_LINE+1,4);
         printw("...");
+        cursor_limit_y_max = MAX_LINE;
     }
     if(i<MAX_LINE)
     {
+        cursor_limit_y_max = i;
         for(int j=i+1 ;j<=MAX_LINE;j++ )
         {
             move(j,0);
@@ -4987,6 +4968,7 @@ void print_bord(char * address , char * vim_status)
 }
 char * get_command()
 {
+    move(cursor_pos[0],cursor_pos[1]);
     //initscr();
     init_pair(3,COLOR_WHITE,8); // bar line
 
@@ -4995,12 +4977,14 @@ char * get_command()
     noecho();
     attron(COLOR_PAIR(3));
     char * result = (char *)malloc(1000000);
-    char ch;
+    int ch;
     move(MAX_LINE+2,0);
     ch  = getch();
     printw("                                                    \n");
     move(MAX_LINE+2,0);
     int i=0;
+    char ch_1 = 0 ;
+    char ch_2 = 0;
     while(ch!='\n')
     {
         move(MAX_LINE+2,i);
@@ -5015,16 +4999,36 @@ char * get_command()
         }
         else{
             result[i] = ch;
-            if(ch!=27)
+            if(ch_2=='\033' && ch_1=='[' && ch<='D' && ch>='A')
+            {
+
+                move_curser(ch);
+                for(int k=0 ; k<2; k++){
+                    i--;
+                    if(mvinch(MAX_LINE+2,i)!=' ')
+                        printw(" ");
+                }
+                i--;
+
+            }
+            else if(ch!=27)
             {
                 printw("%c",ch);
             }
             i++;
         }
+        move(cursor_pos[0],cursor_pos[1]);
+        ch_2 = ch_1;
+        ch_1 = ch ;
         ch = getch();
     }
     result[i]='\0';
     attroff(COLOR_PAIR(3));
+     move(MAX_LINE+2,0);
+    attron(COLOR_PAIR(3));
+    printw("type here                                           \n");
+    attroff(COLOR_PAIR(3));
+    move(MAX_LINE+2,0);
     return result;
 
 }
@@ -5034,21 +5038,68 @@ char execute()
     char * com1 = nth_word(command,1);
     if(strcmp(com1,":open")==0)
     {
-        char * address = first_str(command+5);
+        char * address = first_str(command+6);
         if(check_address(address)==0){
             init_pair(4,COLOR_RED,8);
             attron(COLOR_PAIR(4));
             move(MAX_LINE+2,0);
-            printw("wrong address");
+            printw("wrong address                                      ");
             attroff(COLOR_PAIR(4));
             return 1;
         }
-        print_bord(command+5,"NORMAL");
+        strcpy(file_address,address);
+        isSaved = 0 ;
+        print_bord(address);
     }
+
     else if (command[0]==27)
     {
         return 0;
     }
     return 1;
+}
+void copy_file_content(char * add1 ,char* add2)
+{
+    FILE * file1 = fopen(add1,"w");
+    FILE * file2 = fopen(add2,"r");
+    char ch = fgetc(file2);
+    while(ch!=EOF)
+    {
+        fprintf(file1,"%c",ch);
+        ch = fgetc(file2);
+    }
+
+    fclose(file1); fclose(file2);
+
+}
+void move_curser(int mv)
+{
+    if(mv == 'A')
+    {
+        if(cursor_pos[0]>cursor_limit_y_min)
+            cursor_pos[0]--;
+        if(cursor_pos[1]>cursor_limit_x_max[cursor_pos[0]])
+           cursor_pos[1] =  cursor_limit_x_max[cursor_pos[0]];
+    }
+    else if(mv=='B')
+    {
+        if(cursor_pos[0]<cursor_limit_y_max)
+            cursor_pos[0]++;
+        if(cursor_pos[1]>cursor_limit_x_max[cursor_pos[0]])
+           cursor_pos[1] =  cursor_limit_x_max[cursor_pos[0]];
+    }
+    else if(mv=='D')
+    {
+        if(cursor_pos[1]>cursor_limit_x_min)
+            cursor_pos[1]--;
+
+    }
+    else if(mv=='C')
+    {
+        if(cursor_pos[1]<cursor_limit_x_max[cursor_pos[0]])
+            cursor_pos[1]++;
+
+
+    }
 }
 
