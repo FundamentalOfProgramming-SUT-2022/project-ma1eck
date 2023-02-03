@@ -125,6 +125,8 @@ char print_bord(char * address );
 char * get_command();
 char execute();
 void move_curser(int mv);
+void copy_file_content(char * add1 ,char* add2);
+void insert_char(char * address,int line_number , int start_pos,char inserting_char);
 
 
 
@@ -207,7 +209,7 @@ void master()
             //printf("%s\n",address);
             printw("done\n");
         }
-        else if(strcmp(command,"insertstr")==0) // insertstr --file /root/dir1/dir2/file.txt --str Salam –pos 2:5
+        else if(strcmp(command,"insertstr")==0) // insertstr --file /root/dir1/dir2/file.txt --str Salam ï¿½pos 2:5
         {
             char * address = (char*)malloc(100000);
             int word_number = count_space(input) + 1 ;
@@ -743,7 +745,7 @@ void master()
 
 
         }
-        else if(strcmp(command,"pastestr")==0) //pastestr –file <file name> –pos <line no>:<start position>
+        else if(strcmp(command,"pastestr")==0) //pastestr ï¿½file <file name> ï¿½pos <line no>:<start position>
         {
             char * address = (char*)malloc(100000);
             int word_number = count_space(input) + 1 ;
@@ -1887,10 +1889,10 @@ int main()
         cursor_limit_y_max = MAX_LINE;
         cursor_limit_x_min = 4 ;
         cursor_limit_x_max = (int *)malloc((MAX_LINE+1)*sizeof(int));
-    starting_line = 3;
+    starting_line = 1;
     cursor_pos[0] = cursor_limit_y_min ; cursor_pos[1] = cursor_limit_x_min;
     //-----------
-    //initialize();
+    initialize();
     //master();
 
     print_bord(live_file_address);
@@ -1898,6 +1900,7 @@ int main()
     {
         //print_bord("","NORMAL");
     }
+    //insert_char(live_file_address,1,0,'3');
 
     //printf("%d",getch());
     //get_command();
@@ -2118,6 +2121,7 @@ void initialize()
     create_folder("./root");
     create_folder("./pre");
     create_folder("./temp");
+    create_folder("./live");
     if (!fopen("./temp/temp_clipboard.txt","r"))
     {
         fclose(fopen("./temp/temp_clipboard.txt","w"));
@@ -3147,6 +3151,7 @@ void closing_pair(char * address)
 }
 void backup_a_file(char * address)
 {
+    return ;
     int i = 0 ;
     while(strcmp2("root",address+i,4)==0)
     {
@@ -4888,7 +4893,6 @@ char check_address(char * address)
 //----------------------------------phase 2------------------------------------------------
 char print_bord(char * address )
 {
-    int MAX_LINE = 30;
 	initscr();
 	clear();
     raw();
@@ -4896,11 +4900,17 @@ char print_bord(char * address )
     move(0,2);
     init_pair(1,COLOR_YELLOW,COLOR_BLACK);
     init_pair(2,COLOR_WHITE,COLOR_CYAN);
+    init_pair(4,COLOR_WHITE,COLOR_RED);
     init_pair(3,COLOR_WHITE,8); // bar line
 
-    attron(COLOR_PAIR(2));
+    int mode = 2;
+    if(strcmp(vim_status,"INSERT")==0)
+    {
+        mode = 4;
+    }
+    attron(COLOR_PAIR(mode));
     printw("%s ",vim_status);
-    attroff(COLOR_PAIR(2));
+    attroff(COLOR_PAIR(mode));
     attron(COLOR_PAIR(1));
     if(isSaved==0)
     {
@@ -4933,6 +4943,7 @@ char print_bord(char * address )
             //attroff(COLOR_PAIR(3));
             move(MAX_LINE+2,0);
             refresh();
+            fclose(file);
             return 0;
         }
        // printf("9%s\n",line);
@@ -5080,7 +5091,8 @@ char execute()
     char * com1 = nth_word(command,1);
     if(strcmp(com1,":open")==0)
     {
-        char * address = first_str(command+6);
+        char * address = command+6;
+
         if(check_address(address)==0){
             init_pair(4,COLOR_RED,8);
             attron(COLOR_PAIR(4));
@@ -5090,13 +5102,68 @@ char execute()
             return 1;
         }
         strcpy(file_address,address);
-        //isSaved = 0 ;
+        isSaved = 1 ;
         live_file_address = address;
         starting_line = 1;
         cursor_pos[0] = cursor_limit_y_min ; cursor_pos[1] = cursor_limit_x_min;
         print_bord(address);
     }
+    else if(strcmp(com1,":i")==0)
+    {
+        vim_status = "INSERT";
+        copy_file_content("./live/live.txt",live_file_address);
+        live_file_address = "./live/live.txt";
+        isSaved = 0;
+        print_bord(live_file_address);
+        refresh();
+        char ch;
+        move(cursor_pos[0],cursor_pos[1]);
+        refresh();
+        ch = getchar();
+        int i = 0;
+        while(ch!=27)
+        {
+            if(ch=='\n')
+            {
+                cursor_pos[0] += 1;   cursor_pos[1] = cursor_limit_x_min;
+            }
+            else if(ch == 127)
+            {
+                if(cursor_pos[1]>=cursor_limit_x_min)
+                {
+                    remove_by_index(live_file_address,cursor_pos[0] + starting_line - cursor_limit_y_min  , cursor_pos[1]-cursor_limit_x_min ,1,'b');
+                    cursor_pos[1] -= 2;
+                }
+                else{
+                    cursor_pos[1] ++;
+                }
 
+            }
+            else {
+                insert_char(live_file_address,cursor_pos[0] + starting_line - cursor_limit_y_min ,cursor_pos[1]-cursor_limit_x_min ,ch);
+            }
+            print_bord(live_file_address);
+            move(cursor_pos[0],cursor_pos[1]);
+            refresh();
+            ch = getchar();
+            cursor_pos[1] += 1;
+
+        }
+        vim_status = "NORMAL";
+        print_bord(live_file_address);
+    }
+    else if(strcmp(com1,":s")==0)
+    {
+        if(isSaved==0)
+        {
+            copy_file_content(file_address,live_file_address);
+        }
+        isSaved = 1;
+        starting_line = 1;
+        live_file_address =  file_address;
+        cursor_pos[0] = cursor_limit_y_min ; cursor_pos[1] = cursor_limit_x_min;
+        print_bord(file_address);
+    }
     else if (command[0]==27)
     {
         return 0;
@@ -5105,6 +5172,10 @@ char execute()
 }
 void copy_file_content(char * add1 ,char* add2)
 {
+    if(strcmp(add1,add2)==0)
+    {
+        return ;
+    }
     FILE * file1 = fopen(add1,"w");
     FILE * file2 = fopen(add2,"r");
     char ch = fgetc(file2);
@@ -5163,5 +5234,53 @@ void move_curser(int mv)
 
 
     }
+}
+void insert_char(char * address,int line_number , int start_pos,char inserting_char)
+{
+    backup_a_file(address);
+    FILE * file1 = fopen(address,"r");
+    FILE * file2 = fopen("./temp/temp_insert.txt","w");
+    //char * inserting_str = convert_input_str(inserting_str0);
+    char ch;
+    int line=1 ;
+    int is_inserted = 0;
+    while ((ch=fgetc(file1)) != EOF)
+    {
+        if(line == line_number && is_inserted == 0)
+        {
+            for(int pos =0 ; pos< start_pos ; pos++)
+            {
+                fprintf(file2,"%c",ch);
+                ch = fgetc(file1);
+            }
+            fprintf(file2,"%c",inserting_char);
+            is_inserted =1 ;
+        }
+        if(ch=='\n')
+        {
+            line++;
+        }
+        fprintf(file2,"%c",ch);
+    }
+    if(is_inserted == 0)
+    {
+
+        if(line<line_number)
+        {
+            fprintf(file2,"\n");
+        }
+        fprintf(file2,"%c",inserting_char);
+    }
+    fclose(file1); fclose(file2); // roy file 2 mohtava ye asli ro neveshtam
+
+    FILE * file3 = fopen(address,"w");
+    FILE * file4 = fopen("./temp/temp_insert.txt","r");
+
+    while ((ch=fgetc(file4)) != EOF)
+    {
+        fprintf(file3,"%c",ch);
+    }
+    fclose(file3); fclose(file4);
+
 }
 
