@@ -121,7 +121,7 @@ char * first_str2(char*str);
 int count_in_str(char * str , char ch);
 char check_address(char * address);
 //---------------phase 2-----------------------
-void print_bord(char * address );
+char print_bord(char * address );
 char * get_command();
 char execute();
 void move_curser(int mv);
@@ -141,6 +141,8 @@ char isSaved;
     int cursor_limit_y_max ;
     int cursor_limit_x_min ;
     int * cursor_limit_x_max;
+int starting_line;
+
 //------------------
 
 
@@ -1873,25 +1875,25 @@ void master()
 // cd /mnt/d/daneshgah/c/FOP\ project/
 int main()
 {
-    create_file("./root/t.txt");
     // definition
     vim_status = (char *)malloc(10);
     strcpy(vim_status,"NORMAL");
     file_address = (char *)malloc(1000000);
-    strcpy(file_address,"temp/test.txt");
+    strcpy(file_address,"root/test.txt");
+    live_file_address = "./root/test.txt";
     isSaved = 1;
         //--cursor limimts ----
         cursor_limit_y_min = 1;
         cursor_limit_y_max = MAX_LINE;
         cursor_limit_x_min = 4 ;
         cursor_limit_x_max = (int *)malloc((MAX_LINE+1)*sizeof(int));
-
+    starting_line = 3;
     cursor_pos[0] = cursor_limit_y_min ; cursor_pos[1] = cursor_limit_x_min;
     //-----------
     //initialize();
     //master();
 
-    print_bord("./temp/test.txt");
+    print_bord(live_file_address);
     while(execute())
     {
         //print_bord("","NORMAL");
@@ -4884,7 +4886,7 @@ char check_address(char * address)
     return 1;
 }
 //----------------------------------phase 2------------------------------------------------
-void print_bord(char * address )
+char print_bord(char * address )
 {
     int MAX_LINE = 30;
 	initscr();
@@ -4906,22 +4908,39 @@ void print_bord(char * address )
     }
     printw(" %s",file_address);
 
-    for(int i=1 ;i<=MAX_LINE;i++ )
+    for(int i=starting_line ;i<=MAX_LINE+starting_line-1;i++ )
     {
-        move(i,0);
+        move(i-starting_line+1,0);
         printw("%2d",i);
     }
-    for(int i=1 ;i<=MAX_LINE;i++ )
+    for(int i=starting_line ;i<=MAX_LINE+starting_line-1;i++ )
     {
-        move(i,2);
+        move(i-starting_line+1,2);
         printw("|");
     }
 
     FILE * file = fopen(address,"r");
     char * line = (char*)malloc(100000);
     int i = 1 ;
+    for( int j = 1 ; j<starting_line ; j++)
+    {
+        if(fgets(line,100000,file)==NULL )
+        {
+            //attroff(COLOR_PAIR(1));
+            move(MAX_LINE+2,0);
+            attron(COLOR_PAIR(3));
+            printw("                                                     \n");
+            //attroff(COLOR_PAIR(3));
+            move(MAX_LINE+2,0);
+            refresh();
+            return 0;
+        }
+       // printf("9%s\n",line);
+
+    }
     char flag = 0;
     attroff(COLOR_PAIR(1));
+    int flag_last_line = 0;
     while(fgets(line,100000,file)!=NULL )
     {
         if(i>MAX_LINE)
@@ -4929,20 +4948,29 @@ void print_bord(char * address )
             flag=1;
             break;
         }
-        move(i,4);
+        move(i,cursor_limit_x_min);
         if(line[strlen(line)-1]=='\n')
         {
             line[strlen(line)-1] = '\0';
         }
         printw("%s",line);
-        cursor_limit_x_max[i] = cursor_limit_x_min + strlen(line) -2;
+        cursor_limit_x_max[i] = cursor_limit_x_min + strlen(line) -1;
+        if(cursor_limit_x_max[i]<cursor_limit_x_min)
+        {
+            cursor_limit_x_max[i] = cursor_limit_x_min;
+        }
+        flag_last_line = strlen(line);
         i++;
     }
     fclose(file);
+    if(i>=starting_line)
+    {
+        i--;
+    }
     attron(COLOR_PAIR(1));
     if(flag==1)
     {
-        move(MAX_LINE+1,4);
+        move(MAX_LINE+1,cursor_limit_x_min);
         printw("...");
         cursor_limit_y_max = MAX_LINE;
     }
@@ -4952,6 +4980,17 @@ void print_bord(char * address )
         for(int j=i+1 ;j<=MAX_LINE;j++ )
         {
             move(j,0);
+            if(starting_line>1)
+            {
+                //attroff(COLOR_PAIR(1));
+                move(MAX_LINE+2,0);
+                attron(COLOR_PAIR(3));
+                printw("                                                     \n");
+                //attroff(COLOR_PAIR(3));
+                move(MAX_LINE+2,0);
+                refresh();
+                return 0;
+            }
             printw("~  ",j);
         }
 
@@ -4959,10 +4998,11 @@ void print_bord(char * address )
     attroff(COLOR_PAIR(1));
     move(MAX_LINE+2,0);
     attron(COLOR_PAIR(3));
-    printw("type here                                           \n");
+    printw("                                                     \n");
     attroff(COLOR_PAIR(3));
     move(MAX_LINE+2,0);
     refresh();
+    return 1;
 
 
 }
@@ -4980,7 +5020,7 @@ char * get_command()
     int ch;
     move(MAX_LINE+2,0);
     ch  = getch();
-    printw("                                                    \n");
+    printw("                                                     \n");
     move(MAX_LINE+2,0);
     int i=0;
     char ch_1 = 0 ;
@@ -5005,6 +5045,7 @@ char * get_command()
                 move_curser(ch);
                 for(int k=0 ; k<2; k++){
                     i--;
+                    attron(COLOR_PAIR(3));
                     if(mvinch(MAX_LINE+2,i)!=' ')
                         printw(" ");
                 }
@@ -5013,6 +5054,7 @@ char * get_command()
             }
             else if(ch!=27)
             {
+                attron(COLOR_PAIR(3));
                 printw("%c",ch);
             }
             i++;
@@ -5026,7 +5068,7 @@ char * get_command()
     attroff(COLOR_PAIR(3));
      move(MAX_LINE+2,0);
     attron(COLOR_PAIR(3));
-    printw("type here                                           \n");
+    printw("                                                     \n");
     attroff(COLOR_PAIR(3));
     move(MAX_LINE+2,0);
     return result;
@@ -5043,12 +5085,15 @@ char execute()
             init_pair(4,COLOR_RED,8);
             attron(COLOR_PAIR(4));
             move(MAX_LINE+2,0);
-            printw("wrong address                                      ");
+            printw("wrong address                                        ");
             attroff(COLOR_PAIR(4));
             return 1;
         }
         strcpy(file_address,address);
-        isSaved = 0 ;
+        //isSaved = 0 ;
+        live_file_address = address;
+        starting_line = 1;
+        cursor_pos[0] = cursor_limit_y_min ; cursor_pos[1] = cursor_limit_x_min;
         print_bord(address);
     }
 
@@ -5076,17 +5121,34 @@ void move_curser(int mv)
 {
     if(mv == 'A')
     {
-        if(cursor_pos[0]>cursor_limit_y_min)
+        if(cursor_pos[0]>cursor_limit_y_min){
             cursor_pos[0]--;
-        if(cursor_pos[1]>cursor_limit_x_max[cursor_pos[0]])
-           cursor_pos[1] =  cursor_limit_x_max[cursor_pos[0]];
+            if(cursor_pos[1]>cursor_limit_x_max[cursor_pos[0]])
+               cursor_pos[1] =  cursor_limit_x_max[cursor_pos[0]];
+        }
+        else{
+            starting_line--;
+            if(starting_line<=0)
+            {
+                starting_line++;
+            }
+            print_bord(live_file_address);
+        }
     }
     else if(mv=='B')
     {
-        if(cursor_pos[0]<cursor_limit_y_max)
+        if(cursor_pos[0]<cursor_limit_y_max){
             cursor_pos[0]++;
-        if(cursor_pos[1]>cursor_limit_x_max[cursor_pos[0]])
-           cursor_pos[1] =  cursor_limit_x_max[cursor_pos[0]];
+            if(cursor_pos[1]>cursor_limit_x_max[cursor_pos[0]])
+               cursor_pos[1] =  cursor_limit_x_max[cursor_pos[0]];
+        }
+        else{
+            starting_line++;
+            if(print_bord(live_file_address)==0){
+                starting_line--;
+                print_bord(live_file_address);
+            }
+        }
     }
     else if(mv=='D')
     {
