@@ -5091,6 +5091,10 @@ char execute()
     char * com1 = nth_word(command,1);
     if(strcmp(com1,":open")==0)
     {
+        if(isSaved==0)
+        {
+            copy_file_content(file_address,live_file_address);
+        }
         char * address = command+6;
 
         if(check_address(address)==0){
