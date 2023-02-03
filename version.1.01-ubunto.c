@@ -127,6 +127,7 @@ char execute();
 void move_curser(int mv);
 void copy_file_content(char * add1 ,char* add2);
 void insert_char(char * address,int line_number , int start_pos,char inserting_char);
+int char_betwewn(int xi,int yi,int xf,int yf);
 
 
 
@@ -1898,12 +1899,14 @@ int main()
     print_bord(live_file_address);
     while(execute())
     {
-        //print_bord("","NORMAL");
     }
-    //insert_char(live_file_address,1,0,'3');
 
-    //printf("%d",getch());
-    //get_command();
+    //int t = char_betwewn(6,1,4,2);
+    //move(20,20);
+    //printw("%d",t);
+    //refresh(); getchar();
+
+
     endwin();
 
 	return 0;
@@ -4903,10 +4906,10 @@ char print_bord(char * address )
     init_pair(4,COLOR_WHITE,COLOR_RED);
     init_pair(3,COLOR_WHITE,8); // bar line
 
-    int mode = 2;
-    if(strcmp(vim_status,"INSERT")==0)
+    int mode = 4;
+    if(strcmp(vim_status,"NORMAL")==0)
     {
-        mode = 4;
+        mode = 2;
     }
     attron(COLOR_PAIR(mode));
     printw("%s ",vim_status);
@@ -5098,12 +5101,7 @@ char execute()
         char * address = command+6;
 
         if(check_address(address)==0){
-            init_pair(4,COLOR_RED,8);
-            attron(COLOR_PAIR(4));
-            move(MAX_LINE+2,0);
-            printw("wrong address                                        ");
-            attroff(COLOR_PAIR(4));
-            return 1;
+            create_file(address);
         }
         strcpy(file_address,address);
         isSaved = 1 ;
@@ -5156,7 +5154,7 @@ char execute()
         vim_status = "NORMAL";
         print_bord(live_file_address);
     }
-    else if(strcmp(com1,":s")==0)
+    else if(strcmp(com1,":save")==0)
     {
         if(isSaved==0)
         {
@@ -5167,6 +5165,105 @@ char execute()
         live_file_address =  file_address;
         cursor_pos[0] = cursor_limit_y_min ; cursor_pos[1] = cursor_limit_x_min;
         print_bord(file_address);
+    }
+    else if(strcmp(com1,"=")==0)
+    {
+        copy_file_content("./live/live.txt",live_file_address);
+        live_file_address = "./live/live.txt";
+        closing_pair(live_file_address);
+        isSaved = 0;
+        cursor_pos[0] = cursor_limit_y_min ; cursor_pos[1] = cursor_limit_x_min;
+        starting_line = 1;
+        print_bord(live_file_address);
+
+    }
+    else if(strcmp(com1,":undo")==0)
+    {
+        isSaved = 1;
+        live_file_address = file_address;
+        print_bord(live_file_address);
+    }
+    else if(strcmp(com1,":v")==0) // dobar yy ya dd ro bezan
+    {
+        vim_status="VISUAL";
+        print_bord(live_file_address);
+        int xi = cursor_pos[1] , yi = cursor_pos[0];
+        char ch = getchar();
+        while (1){
+            if(ch='\033')
+            {
+                ch = getchar();
+                if(ch=='[')
+                {
+                    ch = getchar();
+                    if(ch<='D' && ch>='A')
+                    {
+                        move_curser(ch);
+
+                    }
+                }
+            }
+            if(ch==27)
+            {
+                vim_status = "NORMAL";
+                print_bord(live_file_address);
+                return 1;
+            }
+            move(cursor_pos[0],cursor_pos[1]);
+            refresh();
+            if(ch=='d' || ch=='y'){
+                break;
+            }
+            refresh();
+            int xf = cursor_pos[1] , yf = cursor_pos[0];
+            print_bord(live_file_address);
+            int char_bet = char_betwewn(xi,yi,xf,yf);
+            refresh();
+
+            ch = getchar();
+        }
+
+        int xf = cursor_pos[1] , yf = cursor_pos[0];
+        print_bord(live_file_address);
+        int char_bet = char_betwewn(xi,yi,xf,yf);
+        refresh();
+
+        if(ch=='y')
+        {
+            char di = 'f';
+            if(char_bet < 0)
+            {
+                di = 'b';
+                char_bet = -char_bet;
+            }
+            copy_to_clipboard(live_file_address,yi-cursor_limit_y_min+1,xi-cursor_limit_x_min,char_bet,di);
+        }
+        if(ch=='d')
+        {
+            copy_file_content("./live/live.txt",live_file_address);
+            live_file_address = "./live/live.txt";
+            char di = 'f';
+            if(char_bet < 0)
+            {
+                di = 'b';
+                char_bet = -char_bet;
+            }
+            cut_to_clipboard(live_file_address,yi-cursor_limit_y_min+1,xi-cursor_limit_x_min,char_bet,di);
+            isSaved = 0;
+        }
+        //getchar();
+        vim_status = "NORMAL";
+        print_bord(live_file_address);
+
+    }
+    else if(strcmp(com1,":p")==0)
+    {
+        copy_file_content("./live/live.txt",live_file_address);
+        live_file_address = "./live/live.txt";
+        insert_from_clipboard(live_file_address,cursor_pos[0]-cursor_limit_y_min+1,cursor_pos[1]-cursor_limit_x_min);
+        isSaved = 0;
+        print_bord(live_file_address);
+
     }
     else if (command[0]==27)
     {
@@ -5196,12 +5293,32 @@ void move_curser(int mv)
 {
     if(mv == 'A')
     {
+        if(cursor_pos[0]<=cursor_limit_y_min+3)
+        {
+            if(starting_line==1)
+            {
+                if(cursor_pos[0]>cursor_limit_y_min)
+                {
+                    cursor_pos[0]--;
+                }
+            }
+            else
+            {
+                starting_line -- ;
+            }
+            print_bord(live_file_address);
+            if(cursor_pos[1]>cursor_limit_x_max[cursor_pos[0]])
+               cursor_pos[1] =  cursor_limit_x_max[cursor_pos[0]];
+            //print_bord(live_file_address);
+            return;
+        }
+
         if(cursor_pos[0]>cursor_limit_y_min){
             cursor_pos[0]--;
             if(cursor_pos[1]>cursor_limit_x_max[cursor_pos[0]])
                cursor_pos[1] =  cursor_limit_x_max[cursor_pos[0]];
         }
-        else{
+        else {
             starting_line--;
             if(starting_line<=0)
             {
@@ -5212,6 +5329,24 @@ void move_curser(int mv)
     }
     else if(mv=='B')
     {
+        if(cursor_pos[0]>=cursor_limit_y_max-3){
+            starting_line++;
+            if(print_bord(live_file_address)==0){
+                starting_line--;
+                if(cursor_pos[0]<cursor_limit_y_max){
+                    cursor_pos[0]++;
+                    if(cursor_pos[1]>cursor_limit_x_max[cursor_pos[0]])
+                        cursor_pos[1] =  cursor_limit_x_max[cursor_pos[0]];
+                }
+            }
+            if(cursor_pos[1]>cursor_limit_x_max[cursor_pos[0]])
+                        cursor_pos[1] =  cursor_limit_x_max[cursor_pos[0]];
+            return;
+
+        }
+
+
+
         if(cursor_pos[0]<cursor_limit_y_max){
             cursor_pos[0]++;
             if(cursor_pos[1]>cursor_limit_x_max[cursor_pos[0]])
@@ -5285,6 +5420,71 @@ void insert_char(char * address,int line_number , int start_pos,char inserting_c
         fprintf(file3,"%c",ch);
     }
     fclose(file3); fclose(file4);
+
+}
+int char_betwewn(int xi,int yi,int xf,int yf)
+{
+    int result = 0;
+    char sign;
+    init_pair(5,COLOR_WHITE,5);
+    start_color();
+    attron(COLOR_PAIR(5));
+    if(yi<yf){
+        sign = 1;
+    }
+    else if(yi>yf){
+        sign = -1;
+        int temp = yi;
+        yi = yf;
+        yf = temp;
+
+        temp = xi;
+        xi = xf;
+        xf = temp;
+    }
+    if(yi!=yf){
+        for(int i = xi ; i<=cursor_limit_x_max[yi] ; i++ ){
+            result++;
+            move(yi,i);
+            printw("%c",mvinch(yi,i));
+        }
+        result ++;
+        for(int j = yi+1 ; j<yf; j++){
+            for(int i = cursor_limit_x_min ; i<=cursor_limit_x_max[j] ; i++){
+                result++;
+                move(j,i);
+                printw("%c",mvinch(j,i));
+            }
+            result++;
+        }
+        for(int i = cursor_limit_x_min ; i <= xf ; i++){
+            result++;
+            move(yf,i);
+            printw("%c",mvinch(yf,i));
+        }
+        attroff(COLOR_PAIR(5));
+        return sign * result;
+    }
+    else
+    {
+        if(xi<xf){
+            sign = 1;
+        }
+        else{
+            sign = -1;
+            int temp = xi;
+            xi = xf;
+            xf = temp;
+        }
+        for(int i = xi ; i<= xf ; i++)
+        {
+            result++;
+            move(yf,i);
+            printw("%c",mvinch(yf,i));
+        }
+        attroff(COLOR_PAIR(5));
+        return sign * result;
+    }
 
 }
 
