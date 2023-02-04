@@ -415,7 +415,7 @@ void master()
             }
             cat_print(address);
 
-            printf("done\n");
+            //printf("done\n");
         }
         else if(strcmp(command,"removestr")==0) //  --file /root/file1.txt --pos 2:1 -size 3 -b
         {

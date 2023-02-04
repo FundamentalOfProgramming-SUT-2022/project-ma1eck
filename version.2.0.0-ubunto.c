@@ -1015,7 +1015,7 @@ void master(char * input)
                 printw("invalid depth\n");
                 continue;
             }
-            tree("root",0,depth);
+            tree_output_arman("root",0,depth);
             //printf("done\n");
         }
         else if(strcmp(command,"compare")==0) // compare a.txt b.txt
@@ -1288,21 +1288,21 @@ void master(char * input)
                 char * attribute = nth_word(input+flag+1,1);
                 if(strcmp(attribute,"byword")==0)
                 {
-                    FILE *  file23 = fopen("./temp/temp_arman","w");
+                    FILE *  file23 = fopen("./temp/temp_arman.txt","w");
                     fprintf(file23,"%d\n",convert2byword(find2(address,str,1),address));
                     fclose(file23);
                     continue;
                 }
                 else if(strcmp(attribute,"count")==0)
                 {
-                    FILE *  file23 = fopen("./temp/temp_arman","w");
+                    FILE *  file23 = fopen("./temp/temp_arman.txt","w");
                     fprintf(file23,"%d\n",find_counter(address,str));
                     fclose(file23);
                     continue;
                 }
                 else if(strcmp(attribute,"all")==0)
                 {
-                    FILE *  file23 = fopen("./temp/temp_arman","w");
+                    FILE *  file23 = fopen("./temp/temp_arman.txt","w");
                     int * out = find_all(address,str);
                     int j =0 ;
                     while (out[j]!=-1)
@@ -1326,7 +1326,7 @@ void master(char * input)
                         at *=10 ;
                         at += at_str[i]-'0';
                     }
-                    FILE *  file23 = fopen("./temp/temp_arman","w");
+                    FILE *  file23 = fopen("./temp/temp_arman.txt","w");
                     fprintf(file23,"%d\n",find2(address,str,at));
                     fclose(file23);
                 }
@@ -5576,6 +5576,7 @@ char execute()
         starting_line = 1;
         live_file_address =  "./temp/temp_arman.txt";
         file_address = "no file";
+        print_bord(live_file_address);
         cursor_pos[0] = cursor_limit_y_min ; cursor_pos[1] = cursor_limit_x_min;
     }
     else if (command[0]==27)
