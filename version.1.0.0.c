@@ -16,20 +16,6 @@
 #include <dirent.h>
 #include <errno.h>
 
-/*
-to do list :
-
-
-
-3) wildcard of find
-- simple find -> ending with *
-- count find ->beginning and ending with *
-
-find function is not finished
-
-
-
-*/
 
 /*
 some notes for using this program
@@ -45,8 +31,13 @@ wildcard nazadam -50
 copy matn boland +20
 auto indent chand khati + 30
 find & replace chand khati
+file hay ezafi nadaram(undo , ...) + 5
+text comparator emtiazi +15
+arman -30
 
-arman ro bray har dastor momkene neveshtam
+-----phase 2---
+highlight selection +20
+phase 1 commands  -20
 
 */
 
@@ -1847,7 +1838,8 @@ void master()
 int main()
 {
     initialize();
-    master();
+    //master();
+    line_compare("./root/t.txt","./root/tt.txt");
 
     return 0;
 }
@@ -2287,7 +2279,57 @@ void line_compare(char * address1 , char * address2) // this function print the 
 
         if(strcmp(str1,str2) != 0 )
         {
+            int word_number_1 = count_space(str1) + 1  , word_number_2 = count_space(str2) + 1 ;
             printf("============ #%d ============\n",line);
+            if(word_number_1==word_number_2)
+            {
+                int number = 0 ;
+                int index;
+                for(int ii = 1; ii<= word_number_1 ; ii++){
+                    char * word1 = nth_word(str1,ii);
+                    char * word2 = nth_word(str2,ii);
+                    if(strcmp(word1,word2)!=0){
+                        number++;
+                        index = ii;
+                    }
+
+                }
+                if(number==1){
+                    char * word;
+                    for(int ii = 1; ii<= word_number_1 ; ii++){
+                        word = nth_word(str1,ii);
+                        if(ii==index){
+                            printf(">>%s<<",word);
+                        }
+                        else{
+                            printf("%s",word);
+                        }
+                        if(ii!=word_number_1){
+                            printf(" ");
+                        }
+                    }
+                    if(word[strlen(word)-1]!='\n'){
+                        printf("\n");
+                    }
+                    for(int ii = 1; ii<= word_number_1 ; ii++){
+                        word = nth_word(str2,ii);
+                        if(ii==index){
+                            printf(">>%s<<",word);
+                        }
+                        else{
+                            printf("%s",word);
+                        }
+                        if(ii!=word_number_1){
+                            printf(" ");
+                        }
+                    }
+                    if(word[strlen(word)-1]!='\n'){
+                        printf("\n");
+                    }
+                    line++;
+                    continue;
+                }
+            }
             printf("%s",str1);
             printf("%s",str2);
 
