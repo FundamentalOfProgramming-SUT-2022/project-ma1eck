@@ -35,15 +35,14 @@ copy matn boland +20
 auto indent chand khati + 30
 find & replace chand khati
 file hay ezafi nadaram(undo , ...) + 5
+text comparator emtiazi +15
 arman -30
 
 -----phase 2---
 highlight selection +20
 phase 1 commands  -20
-
-
-
-arman ro bray har dastor momkene neveshtam
+navigate by word +10
+opening large file (50mg) +100 ?????
 
 */
 
@@ -143,6 +142,7 @@ int starting_line;
 char isFind;
 char * find_pattern;
 int find_n;
+char navigate_by_word;
 
 //------------------
 
@@ -1882,17 +1882,21 @@ int main()
     strcpy(vim_status,"NORMAL");
     file_address = (char *)malloc(1000000);
     strcpy(file_address,"root/test.txt");
-    live_file_address = "./root/test.txt";
+    live_file_address = file_address;
     isSaved = 1;
         //--cursor limimts ----
         cursor_limit_y_min = 1;
         cursor_limit_y_max = MAX_LINE;
-        cursor_limit_x_min = 4 ;
+        cursor_limit_x_min = 2 + 6 ;
         cursor_limit_x_max = (int *)malloc((MAX_LINE+1)*sizeof(int));
+        for(int i=1 ;i<MAX_LINE+1;i++){
+            cursor_limit_x_max[i] = cursor_limit_x_min;
+        }
     starting_line = 1;
     cursor_pos[0] = cursor_limit_y_min ; cursor_pos[1] = cursor_limit_x_min;
     isFind = 0;
     find_n = -1;
+    navigate_by_word = 0;
     //-----------
     initialize();
     //master();
@@ -2126,9 +2130,18 @@ void initialize()
     create_folder("./pre");
     create_folder("./temp");
     create_folder("./live");
+
     if (!fopen("./temp/temp_clipboard.txt","r"))
     {
         fclose(fopen("./temp/temp_clipboard.txt","w"));
+    }
+    if (!fopen("./live/live.txt","r"))
+    {
+        fclose(fopen("./live/live.txt","w"));
+    }
+    if (!fopen("./root/test.txt","r"))
+    {
+        fclose(fopen("./root/test.txt","w"));
     }
 }
 void copy_to_clipboard(char* address ,int line_number , int start_pos,int size , char direction )
@@ -4922,15 +4935,21 @@ char print_bord(char * address )
         printw(" *",file_address);
     }
     printw(" %s",file_address);
-
-    for(int i=starting_line ;i<=MAX_LINE+starting_line-1;i++ )
-    {
-        move(i-starting_line+1,0);
-        printw("%2d",i);
+    if(navigate_by_word == 1){
+        init_pair(7,COLOR_RED,COLOR_BLACK);
+        attron(COLOR_PAIR(7));
+        printw("    navigate by word");
+        attroff(COLOR_PAIR(7));
+        attron(COLOR_PAIR(1));
     }
     for(int i=starting_line ;i<=MAX_LINE+starting_line-1;i++ )
     {
-        move(i-starting_line+1,2);
+        move(i-starting_line+1,0);
+        printw("%6d",i);
+    }
+    for(int i=starting_line ;i<=MAX_LINE+starting_line-1;i++ )
+    {
+        move(i-starting_line+1,cursor_limit_x_min-2);
         printw("|");
     }
 
@@ -4962,6 +4981,7 @@ char print_bord(char * address )
         if(i>MAX_LINE)
         {
             flag=1;
+            i++;
             break;
         }
         move(i,cursor_limit_x_min);
@@ -5000,7 +5020,7 @@ char print_bord(char * address )
         i++;
     }
     fclose(file);
-    if(i>=starting_line)
+    if(i>=1)
     {
         i--;
     }
@@ -5013,7 +5033,7 @@ char print_bord(char * address )
     }
     if(i<MAX_LINE)
     {
-        cursor_limit_y_max = i;
+        cursor_limit_y_max = i+1;
         for(int j=i+1 ;j<=MAX_LINE;j++ )
         {
             move(j,0);
@@ -5028,7 +5048,10 @@ char print_bord(char * address )
                 refresh();
                 return 0;
             }
-            printw("~  ",j);
+            for(int kk =0 ; kk<cursor_limit_x_min-4 ; kk++){
+                printw(" ");
+            }
+            printw("~  ");
         }
 
     }
@@ -5087,8 +5110,19 @@ char * get_command()
                     if(mvinch(MAX_LINE+2,i)!=' ')
                         printw(" ");
                 }
-                i--;
+                i = -1;
 
+            }
+            else if(ch_2=='\033' && ch_1==79 && ch == 80){
+                navigate_by_word = 1- navigate_by_word;
+                for(int k=0 ; k<2; k++){
+                    i--;
+                    attron(COLOR_PAIR(3));
+                    if(mvinch(MAX_LINE+2,i)!=' ')
+                        printw(" ");
+                }
+                print_bord(live_file_address);
+                i=-1;
             }
             else if(ch!=27)
             {
@@ -5160,12 +5194,15 @@ char execute()
         refresh();
         ch = getchar();
         int i = 0;
+        char flag_line_changed = 0;
         while(ch!=27)
         {
             if(ch=='\n' || ch==13)
             {
-                insert(live_file_address,cursor_pos[0] + starting_line - cursor_limit_y_min ,cursor_pos[1]-cursor_limit_x_min ,"\r\n");
-                cursor_pos[0] += 1;   cursor_pos[1] = cursor_limit_x_min-1;
+                insert(live_file_address,cursor_pos[0] + starting_line - cursor_limit_y_min ,cursor_pos[1]-cursor_limit_x_min ,"\n");
+                move_curser('B');
+                //flag_line_changed = 1;
+                cursor_pos[1]--;
 
             }
             else if(ch == 127)
@@ -5177,13 +5214,27 @@ char execute()
                 }
                 else{
                     if(cursor_pos[0]>cursor_limit_y_min){
-                        cursor_pos[0] --;
+                        remove_by_index(live_file_address,cursor_pos[0] + starting_line - cursor_limit_y_min  , cursor_pos[1]-cursor_limit_x_min ,1,'b');
+                        move_curser('A');
+                        flag_line_changed = 1;
+                        cursor_pos[1]--;
+                        if(cursor_limit_x_max[cursor_pos[0]] != cursor_limit_x_min ){
+                            cursor_pos[1] = cursor_limit_x_max[cursor_pos[0]];
+                            flag_line_changed = 0;
+                        }
+                        else{
+
+                        };
+
                     }
-                    cursor_pos[1] = cursor_limit_x_max[cursor_pos[0]];
                 }
 
             }
             else {
+                if(flag_line_changed==1){
+                    flag_line_changed=0;
+                    //move_curser('A');
+                }
                 insert_char(live_file_address,cursor_pos[0] + starting_line - cursor_limit_y_min ,cursor_pos[1]-cursor_limit_x_min ,ch);
             }
             print_bord(live_file_address);
@@ -5307,8 +5358,8 @@ char execute()
             int xf = cursor_pos[1] , yf = cursor_pos[0];
             print_bord(live_file_address);
             int char_bet = char_betwewn(xi,yi,xf,yf);
+            move(cursor_pos[0],cursor_pos[1]);
             refresh();
-
             ch = getchar();
         }
 
@@ -5610,6 +5661,7 @@ void move_curser(int mv)
             }
             print_bord(live_file_address);
         }
+
     }
     else if(mv=='B')
     {
@@ -5647,18 +5699,46 @@ void move_curser(int mv)
     }
     else if(mv=='D')
     {
-        if(cursor_pos[1]>cursor_limit_x_min)
-            cursor_pos[1]--;
+        if(navigate_by_word==1){
+            if((mvinch(cursor_pos[0],cursor_pos[1]) == ' ' && cursor_pos[1]>cursor_limit_x_min)){
+                cursor_pos[1]--;
+            }
+            while(mvinch(cursor_pos[0],cursor_pos[1])!=' ' && cursor_pos[1]>cursor_limit_x_min){
+                cursor_pos[1]--;
+            }
+        }
+        else{
+            if(cursor_pos[1]>cursor_limit_x_min)
+                cursor_pos[1]--;
+        }
 
     }
     else if(mv=='C')
     {
-        if(cursor_pos[1]<cursor_limit_x_max[cursor_pos[0]])
-            cursor_pos[1]++;
+        if(navigate_by_word==1){
+            if((mvinch(cursor_pos[0],cursor_pos[1]) == ' ' && cursor_pos[1]<cursor_limit_x_max[cursor_pos[0]])){
+                cursor_pos[1]++;
+            }
+
+            while(mvinch(cursor_pos[0],cursor_pos[1])!=' ' && cursor_pos[1]<cursor_limit_x_max[cursor_pos[0]]){
+                cursor_pos[1]++;
+            }
+
+        }
+        else{
+            if(cursor_pos[1]<cursor_limit_x_max[cursor_pos[0]])
+                cursor_pos[1]++;
+        }
 
 
     }
+
     print_bord(live_file_address);
+    if(cursor_pos[1]<cursor_limit_x_min){
+        cursor_pos[1] = cursor_limit_x_min;
+    }
+    move(cursor_pos[0],cursor_pos[1]);
+    refresh();
 }
 void insert_char(char * address,int line_number , int start_pos,char inserting_char)
 {
