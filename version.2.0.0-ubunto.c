@@ -147,12 +147,8 @@ char navigate_by_word;
 //------------------
 
 
-void master()
+void master(char * input)
 {
-    char * input = (char* )malloc(100000);
-    while (1)
-    {
-        fgets(input,100000,stdin);
         if(input[strlen(input)-1]=='\n')
         {
             input[strlen(input)-1] = '\0';
@@ -160,7 +156,10 @@ void master()
         char * command = nth_word(input,1);
 
         // without arman
-
+    FILE * file22 = fopen("temp/undo_temp2.txt","w");
+    fprintf(file22,"%s",command);
+    fclose(file22);
+    for(int ijk = 0 ;ijk<1; ijk++){
         if(strcmp(command,"createfile")==0) // createfile --file /root/dir1/dir2/file.txt
         {
             char * address = (char*)malloc(100000);
@@ -281,12 +280,12 @@ void master()
             if(check_folder_address(temp)==0)
             {
                 printw("invalid address\n");
-                continue;
+                return;
             }
             if(check_file_address(address)==0)
             {
                 printw("invalid file name\n");
-                continue;
+                return;
             }
             char * str = (char *)malloc(100000);
             flag = 0 ;
@@ -391,8 +390,10 @@ void master()
                     pos += position[i]-'0';
                 }
             }
+
+
+
             insert(address,line,pos,str);
-            printw("done\n");
 
 
 
@@ -481,12 +482,12 @@ void master()
             if(check_folder_address(temp)==0)
             {
                 printw("invalid address\n");
-                continue;
+                return;
             }
             if(check_file_address(address)==0)
             {
                 printw("invalid file name\n");
-                continue;
+                return;
             }
             flag = 0;
             int char_pass = strlen(address)+2+strlen(nth_word(input,1)) + strlen(nth_word(input,2));
@@ -552,6 +553,7 @@ void master()
         }
         else if(strcmp(command,"copystr")==0) // like remove
         {
+
             char * address = first_str(input);
 
             address = convert_input_address(address);
@@ -578,12 +580,12 @@ void master()
             if(check_folder_address(temp)==0)
             {
                 printw("invalid address\n");
-                continue;
+                return;
             }
             if(check_file_address(address)==0)
             {
                 printw("invalid file name\n");
-                continue;
+                return;
             }
             flag = 0;
             int char_pass = strlen(address)+2+strlen(nth_word(input,1)) + strlen(nth_word(input,2));
@@ -675,12 +677,12 @@ void master()
             if(check_folder_address(temp)==0)
             {
                 printw("invalid address\n");
-                continue;
+                return;
             }
             if(check_file_address(address)==0)
             {
                 printw("invalid file name\n");
-                continue;
+                return;
             }
             flag = 0;
             int char_pass = strlen(address)+2+strlen(nth_word(input,1)) + strlen(nth_word(input,2));
@@ -817,12 +819,12 @@ void master()
             if(check_folder_address(temp)==0)
             {
                 printw("invalid address\n");
-                continue;
+                return;
             }
             if(check_file_address(address)==0)
             {
                 printw("invalid file name\n");
-                continue;
+                return;
             }
             char * str = (char *)malloc(100000);
             flag = 0 ;
@@ -933,64 +935,6 @@ void master()
 
 
         }
-        else if(strcmp(command,"undo")==0) // undo --file root/test.txt
-        {
-            char * address = (char*)malloc(100000);
-            int word_number = count_space(input) + 1 ;
-            strcpy(address,nth_word(input,3));
-            for(int i=4 ; i<= word_number ; i++)
-            {
-                strcat(address," ");
-                strcat(address,nth_word(input,i));
-            }
-            int address_lenght = strlen(address);
-            if(word_number!=3)
-            {
-                address++;
-                address[address_lenght-1] = '\0';
-            }
-            address_lenght = strlen(address);
-            if(address[address_lenght-1]=='"')
-            {
-                address[address_lenght-1] = '\0';
-            }
-            int flag = 0 ;
-            for(int i=0; i<10 ; i++)
-            {
-                if(address[i]=='r')
-                {
-                    flag= i ;
-                    break;
-                }
-            }
-            address += flag;
-
-            char * temp  = (char*)malloc(strlen(address));
-            flag = 0;
-            for(int i=0 ; i<strlen(address); i++)
-            {
-                if(address[i]=='/')
-                    flag = i;
-                temp[i] = address[i];
-            }
-            temp[flag] = '\0';
-            //printf("%s \n",temp);
-            address = convert_input_address(address);
-            temp = convert_input_address(temp);
-            if(check_folder_address(temp)==0)
-            {
-                printw("invalid address\n");
-                continue;
-            }
-            if(check_file_address(address)==0)
-            {
-                printw("invalid file name\n");
-                continue;
-            }
-            undo(address);
-
-            printw("done\n");
-        }
         else if(strcmp(command,"auto-indent")==0) // auto-indent --file root/test.txt
         {
             char * address = (char*)malloc(100000);
@@ -1038,12 +982,12 @@ void master()
             if(check_folder_address(temp)==0)
             {
                 printw("invalid address\n");
-                continue;
+                return;
             }
             if(check_file_address(address)==0)
             {
                 printw("invalid file name\n");
-                continue;
+                return;
             }
             closing_pair(address);
 
@@ -1157,6 +1101,9 @@ void master()
         }
         else if(strcmp(command,"find")==0)// find --file root/file1.txt --str "sa" -count -byword -at 2 -all
         {
+
+
+
             char * address = (char*)malloc(100000);
             int word_number = count_space(input) + 1 ;
             strcpy(address,nth_word(input,3));
@@ -1325,7 +1272,7 @@ void master()
 
             if(number==4)
             {
-               printw("%d\n",find2(address,str,1));
+               find2_output_arman(address,str,1);
                continue;
             }
             else if(number==5)
@@ -1341,28 +1288,34 @@ void master()
                 char * attribute = nth_word(input+flag+1,1);
                 if(strcmp(attribute,"byword")==0)
                 {
-                    printw("%d\n",convert2byword(find2(address,str,1),address));
+                    FILE *  file23 = fopen("./temp/temp_arman","w");
+                    fprintf(file23,"%d\n",convert2byword(find2(address,str,1),address));
+                    fclose(file23);
                     continue;
                 }
                 else if(strcmp(attribute,"count")==0)
                 {
-                    printw("%d\n",find_counter(address,str));
+                    FILE *  file23 = fopen("./temp/temp_arman","w");
+                    fprintf(file23,"%d\n",find_counter(address,str));
+                    fclose(file23);
                     continue;
                 }
                 else if(strcmp(attribute,"all")==0)
                 {
+                    FILE *  file23 = fopen("./temp/temp_arman","w");
                     int * out = find_all(address,str);
                     int j =0 ;
                     while (out[j]!=-1)
                     {
-                        printw("%d ",out[j]);
+                        fprintf(file23,"%d ",out[j]);
                         j++;
                     }
                     if(j==0)
                     {
-                        printw("-1");
+                        fprintf(file23,"-1");
                     }
-                    printw("\n");
+                    fprintf(file23,"\n");
+                    fclose(file23);
                 }
                 else if(strcmp(attribute,"at")==0)
                 {
@@ -1373,7 +1326,9 @@ void master()
                         at *=10 ;
                         at += at_str[i]-'0';
                     }
-                    printw("%d\n",find2(address,str,at));
+                    FILE *  file23 = fopen("./temp/temp_arman","w");
+                    fprintf(file23,"%d\n",find2(address,str,at));
+                    fclose(file23);
                 }
                 else
                 {
@@ -1475,23 +1430,27 @@ void master()
                 {
                     if(at != -1)
                     {
-                        printw("%d\n",convert2byword(find2(address,str,at),address));
+                        FILE * file23 = fopen("./temp/temp_arman.txt","w");
+                        fprintf(file23,"%d\n",convert2byword(find2(address,str,at),address));
+                        fclose(file23);
                         continue;
                     }
                     else if(all==1 )
                     {
+                        FILE * file23 = fopen("./temp/temp_arman.txt","w");
                         int * out = find_all(address,str);
                         int j =0 ;
                         while (out[j]!=-1)
                         {
-                            printw("%d ",convert2byword(out[j],address));
+                            fprintf(file23,"%d ",convert2byword(out[j],address));
                             j++;
                         }
                         if(j==0)
                         {
-                            printw("-1");
+                            fprintf(file23,"-1");
                         }
-                        printw("\n");
+                        fprintf(file23,"\n");
+                        fclose(file23);
                         continue;
                     }
                     else
@@ -1866,9 +1825,8 @@ void master()
             printw("invalid command\n");
         }
     }
-
-
 }
+
 
 
 
@@ -1881,7 +1839,7 @@ int main()
     vim_status = (char *)malloc(10);
     strcpy(vim_status,"NORMAL");
     file_address = (char *)malloc(1000000);
-    strcpy(file_address,"root/test.txt");
+    file_address = "root/test.txt";
     live_file_address = file_address;
     isSaved = 1;
         //--cursor limimts ----
@@ -5152,8 +5110,11 @@ char execute()
     char * com1 = nth_word(command,1);
     if(strcmp(com1,":open")==0)
     {
-        if(isSaved==0)
+        if(isSaved==0 && strcmp(file_address,"no file")!=0)
         {
+            if(check_address(file_address)==0){
+                create_file(file_address);
+            }
             copy_file_content(file_address,live_file_address);
         }
         char * address = command+6;
@@ -5174,7 +5135,7 @@ char execute()
         if(check_address(address)==0){
             create_file(address);
         }
-        strcpy(file_address,address);
+        file_address = address;
         isSaved = 1 ;
         live_file_address = address;
         starting_line = 1;
@@ -5249,7 +5210,9 @@ char execute()
     }
     else if(strcmp(com1,":save")==0)
     {
-
+        if(strcmp(file_address,"no file")==0){
+            return 1;
+        }
         if(isSaved==0)
         {
             copy_file_content(file_address,live_file_address);
@@ -5298,7 +5261,7 @@ char execute()
         }
         copy_file_content(address,live_file_address);
         isSaved = 1;
-        strcpy(file_address,address);
+        file_address = address;
         live_file_address = address;
         starting_line = 1;
         cursor_pos[0] = cursor_limit_y_min ; cursor_pos[1] = cursor_limit_x_min;
@@ -5599,6 +5562,21 @@ char execute()
                 }
             }
 
+    }
+    else if(strcmp(com1,":do")==0)
+    {
+        if(strcmp(file_address,"no file")!=0){
+            copy_file_content(file_address,live_file_address);
+        }
+        create_file("./temp/temp_arman.txt");
+        master(command+4);
+
+
+        isSaved = 0;
+        starting_line = 1;
+        live_file_address =  "./temp/temp_arman.txt";
+        file_address = "no file";
+        cursor_pos[0] = cursor_limit_y_min ; cursor_pos[1] = cursor_limit_x_min;
     }
     else if (command[0]==27)
     {

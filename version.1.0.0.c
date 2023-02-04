@@ -1838,8 +1838,8 @@ void master()
 int main()
 {
     initialize();
-    //master();
-    line_compare("./root/t.txt","./root/tt.txt");
+    master();
+    //line_compare("./root/t.txt","./root/tt.txt");
 
     return 0;
 }
