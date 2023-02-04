@@ -2557,7 +2557,6 @@ void simple_find(char *address , char * str)
 }
 char * convert_input_str(char * str)
 {
-
     char * result = (char *)malloc((strlen(str)+1)*sizeof(char));
     int i=0;
     result[0] = '\0';
@@ -2592,10 +2591,10 @@ char * convert_input_str(char * str)
             counter++;
             i++;
         }
-        printf("%s\n",result);
     }
         //printf("asli : %s\nresult : %s\n",str,result);
-
+    if(strlen(result)== 0)
+        return str;
     return result;
 }
 int strcmp2(char * str1 , char * str2 , int lenght)

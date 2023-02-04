@@ -1803,18 +1803,20 @@ void master(char * input)
 
             if(attribute==0)
             {
-                simple_grep(str,number_of_addresses,addresses);
+                simple_grep_output_arman(str,number_of_addresses,addresses);
                 continue;
             }
             else if(attribute=='c')
             {
                 //printf("attribute c\n");
-                printw("%d\n",count_grep(str,number_of_addresses,addresses));
+                FILE * file23 = fopen("./temp/temp_arman.txt","w");
+                fprintf(file23,"%d\n",count_grep(str,number_of_addresses,addresses));
+                fclose(file22);
                 continue;
             }
             else if(attribute == 'l')
             {
-                l_grep(str,number_of_addresses,addresses);
+                l_grep_output_arman(str,number_of_addresses,addresses);
                 continue;
             }
 
@@ -4329,19 +4331,6 @@ void l_grep_input_arman(char * str_address , int n , char * addresses[n])
     int i_temp = 0;
     int n_temp = 1;
     char ch_temp = fgetc(file_temp);
-    while(ch_temp!=EOF)
-    {
-        if(i_temp%100000==0 && i_temp!=0)
-        {
-            str = (char *)realloc((void*)str,n_temp*100000);
-            n_temp++;
-        }
-        str[i_temp] = ch_temp;
-        i_temp++;
-        ch_temp = fgetc(file_temp);
-    }
-    str[i_temp] = '\0';
-    fclose(file_temp);
 
     char flag = 0 ;
     int str_lenght = strlen(str);
@@ -5162,8 +5151,8 @@ char execute()
             {
                 insert(live_file_address,cursor_pos[0] + starting_line - cursor_limit_y_min ,cursor_pos[1]-cursor_limit_x_min ,"\n");
                 move_curser('B');
-                //flag_line_changed = 1;
-                cursor_pos[1]--;
+                //flag_line_changed = 1
+                cursor_pos[1] = cursor_limit_x_min+1;
 
             }
             else if(ch == 127)
