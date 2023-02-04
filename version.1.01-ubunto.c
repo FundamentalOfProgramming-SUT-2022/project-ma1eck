@@ -20,20 +20,6 @@
 #include <curses.h>
 #include <unistd.h>
 
-/*
-to do list :
-
-
-
-3) wildcard of find
-- simple find -> ending with *
-- count find ->beginning and ending with *
-
-find function is not finished
-
-
-
-*/
 
 /*
 some notes for using this program
@@ -48,6 +34,14 @@ wildcard nazadam -50
 copy matn boland +20
 auto indent chand khati + 30
 find & replace chand khati
+file hay ezafi nadaram(undo , ...) + 5
+arman -30
+
+-----phase 2---
+highlight selection +20
+phase 1 commands  -20
+
+
 
 arman ro bray har dastor momkene neveshtam
 
@@ -128,6 +122,7 @@ void move_curser(int mv);
 void copy_file_content(char * add1 ,char* add2);
 void insert_char(char * address,int line_number , int start_pos,char inserting_char);
 int char_betwewn(int xi,int yi,int xf,int yf);
+void strncpy2(char * s1 , char * s2, int n);
 
 
 
@@ -145,6 +140,9 @@ char isSaved;
     int cursor_limit_x_min ;
     int * cursor_limit_x_max;
 int starting_line;
+char isFind;
+char * find_pattern;
+int find_n;
 
 //------------------
 
@@ -1590,6 +1588,7 @@ void master()
                 printw("invalid file name\n");
                 continue;
             }
+
             char * str = (char *)malloc(100000);
             flag = 0 ;
             char flag_address = 1;
@@ -1892,6 +1891,8 @@ int main()
         cursor_limit_x_max = (int *)malloc((MAX_LINE+1)*sizeof(int));
     starting_line = 1;
     cursor_pos[0] = cursor_limit_y_min ; cursor_pos[1] = cursor_limit_x_min;
+    isFind = 0;
+    find_n = -1;
     //-----------
     initialize();
     //master();
@@ -2611,10 +2612,11 @@ char * convert_input_str(char * str)
             counter++;
             i++;
         }
-        printw("%s\n",result);
     }
         //printf("asli : %s\nresult : %s\n",str,result);
 
+    if(strlen(result)== 0)
+        return str;
     return result;
 }
 int strcmp2(char * str1 , char * str2 , int lenght)
@@ -4967,7 +4969,28 @@ char print_bord(char * address )
         {
             line[strlen(line)-1] = '\0';
         }
-        printw("%s",line);
+        for(int k=0 ; k<strlen(line); k++)
+        {
+            if(isFind==1){
+                if(strcmp2(line+k,find_pattern,strlen(find_pattern))==1)
+                {
+                    init_pair(5,COLOR_WHITE,5);
+                    attron(COLOR_PAIR(5));
+                    for(int jj = 0 ; jj<strlen(find_pattern) ; jj++)
+                    {
+                        if(line[k+jj]!='\n' && line[k+jj]!='\r'){
+                            printw("%c",line[k+jj]);
+                        }
+                    }
+                    attroff(COLOR_PAIR(5));
+                    k = k+strlen(find_pattern)-1;
+                    continue;
+                }
+            }
+            if(line[k]!='\n' && line[k]!='\r'){
+                printw("%c",line[k]);
+            }
+        }
         cursor_limit_x_max[i] = cursor_limit_x_min + strlen(line) -1;
         if(cursor_limit_x_max[i]<cursor_limit_x_min)
         {
@@ -5032,8 +5055,9 @@ char * get_command()
     attron(COLOR_PAIR(3));
     char * result = (char *)malloc(1000000);
     int ch;
-    move(MAX_LINE+2,0);
+    move(cursor_pos[0],cursor_pos[1]);
     ch  = getch();
+    move(MAX_LINE+2,0);
     printw("                                                     \n");
     move(MAX_LINE+2,0);
     int i=0;
@@ -5100,6 +5124,19 @@ char execute()
         }
         char * address = command+6;
 
+        int flag = -1;
+        for(int i=0 ; i<strlen(address) ; i++ ){
+            if(address[i]=='/'){
+                flag = i;
+            }
+        }
+        if(flag!=-1){
+            char * temp = (char *)malloc(strlen(address));
+            strncpy2(temp,address,flag);
+            if(check_folder_address(temp)==0){
+                create_folder(temp);
+            }
+        }
         if(check_address(address)==0){
             create_file(address);
         }
@@ -5125,19 +5162,24 @@ char execute()
         int i = 0;
         while(ch!=27)
         {
-            if(ch=='\n')
+            if(ch=='\n' || ch==13)
             {
-                cursor_pos[0] += 1;   cursor_pos[1] = cursor_limit_x_min;
+                insert(live_file_address,cursor_pos[0] + starting_line - cursor_limit_y_min ,cursor_pos[1]-cursor_limit_x_min ,"\r\n");
+                cursor_pos[0] += 1;   cursor_pos[1] = cursor_limit_x_min-1;
+
             }
             else if(ch == 127)
             {
-                if(cursor_pos[1]>=cursor_limit_x_min)
+                if(cursor_pos[1]>cursor_limit_x_min)
                 {
                     remove_by_index(live_file_address,cursor_pos[0] + starting_line - cursor_limit_y_min  , cursor_pos[1]-cursor_limit_x_min ,1,'b');
                     cursor_pos[1] -= 2;
                 }
                 else{
-                    cursor_pos[1] ++;
+                    if(cursor_pos[0]>cursor_limit_y_min){
+                        cursor_pos[0] --;
+                    }
+                    cursor_pos[1] = cursor_limit_x_max[cursor_pos[0]];
                 }
 
             }
@@ -5156,6 +5198,7 @@ char execute()
     }
     else if(strcmp(com1,":save")==0)
     {
+
         if(isSaved==0)
         {
             copy_file_content(file_address,live_file_address);
@@ -5165,6 +5208,52 @@ char execute()
         live_file_address =  file_address;
         cursor_pos[0] = cursor_limit_y_min ; cursor_pos[1] = cursor_limit_x_min;
         print_bord(file_address);
+    }
+    else if(strcmp(com1,":saveas")==0)
+    {
+        char * address = command+8;
+        int flag = -1;
+        for(int i=0 ; i<strlen(address) ; i++ ){
+            if(address[i]=='/'){
+                flag = i;
+            }
+        }
+        if(flag!=-1){
+            char * temp = (char *)malloc(strlen(address));
+            strncpy2(temp,address,flag);
+            if(check_folder_address(temp)==0){
+                create_folder(temp);
+            }
+        }
+        if(check_address(address)==0){
+            create_file(address);
+        }
+        else{
+            init_pair(6,COLOR_RED,8);
+            move(MAX_LINE+2,0);
+            attron(COLOR_PAIR(6));
+            printw("this file exists. Do you want to write on it?(y/n)     \n");
+            refresh();
+            attroff(COLOR_PAIR(6));
+            char ch = getchar();
+            if(ch != 'y')
+            {
+                move(MAX_LINE+2,0);
+                refresh();
+                return 1;
+            }
+            move(MAX_LINE+2,0);
+            refresh();
+        }
+        copy_file_content(address,live_file_address);
+        isSaved = 1;
+        strcpy(file_address,address);
+        live_file_address = address;
+        starting_line = 1;
+        cursor_pos[0] = cursor_limit_y_min ; cursor_pos[1] = cursor_limit_x_min;
+        print_bord(live_file_address);
+
+
     }
     else if(strcmp(com1,"=")==0)
     {
@@ -5265,6 +5354,201 @@ char execute()
         print_bord(live_file_address);
 
     }
+    else if(command[0]=='/')
+    {
+        find_pattern = command+1;
+        int match_number = find_counter(live_file_address,find_pattern);
+        if(match_number==0){
+            return 1;
+        }
+        isFind = 1;
+        print_bord(live_file_address);
+        refresh();
+        char ch;
+        ch=getchar();
+        while (ch=='n'){ // dobar bezan biad biron
+            if(ch=='n'){
+                find_n++;
+                find_n %= match_number;
+                print_bord(live_file_address);
+                cursor_pos[1] = cursor_limit_x_min + find2(live_file_address,find_pattern,find_n+1);
+                move(cursor_pos[0],cursor_pos[1]);
+                refresh();
+            }
+            ch = getchar();
+        }
+
+        isFind = 0;
+        find_n = -1;
+        print_bord(live_file_address);
+
+
+    }
+    else if(strcmp(com1,":replace")==0)
+    {
+        copy_file_content("./live/live.txt",live_file_address);
+        live_file_address = "./live/live.txt";
+        isSaved = 0;
+        char * input = command+1;
+        char * str = (char *)malloc(100000);
+            int flag = 0 ;
+            char flag_address = 1;
+            int flag2 = 0;
+            for(int i=1 ;i<strlen(input) ; i++)
+            {
+                if(input[i]=='"' && input[i-1]!='\\')
+                {
+                    flag2++;
+                }
+                if((flag2==0 && input[i]==' ') || flag2 ==2)
+                {
+                    //printf("8");
+                    flag_address = 0;
+                }
+                if (strcmp2("str1",input+i,4)==1  && flag_address==0 )
+                {
+                    flag = i;
+                    break;
+                }
+            }
+            flag+=4;
+            strcpy(str,input+flag);
+            if(str[0]=='"')
+            {
+                str++;
+                flag = 0;
+                for(int i=1 ; i<strlen(str) ; i++)
+                {
+                    if(str[i]=='"'&&str[i-1]=='\\')
+                    {
+                        flag = i ;
+                        break;
+                    }
+                }
+                str[flag]='\0';
+            }
+            else
+            {
+                flag = 0 ;
+                for(int i=0 ; i<strlen(str); i++)
+                {
+                    if(str[i]!=' ')
+                    {
+                        flag =i;
+                        break;
+                    }
+                }
+                str += flag;
+            }
+            flag2 = 0;
+            if(str[0]=='"')
+            {
+                //printf("**");
+                flag2 = 1;
+                str++;
+                flag = strlen(str)-1;
+                for(int i=1 ; i<strlen(str) ; i++)
+                {
+                    if(str[i]=='"' && str[i-1]!='\\')
+                    {
+                        flag = i;
+                        break;
+                    }
+                }
+                str[flag]= '\0';
+
+            }
+            else
+            {
+                flag = -1;
+                for(int i=0 ; i<strlen(str) ; i++)
+                {
+                    if(str[i]==' ' )
+                    {
+                        flag = i;
+                        break;
+                    }
+                }
+                if (flag!=-1)
+                    str[flag]= '\0';
+            }
+
+            //str = convert_input_str(str);
+            int temp_number = strlen("replace --str1 ") + strlen(str);
+            flag = 0;
+            for(int i = temp_number ; i<strlen(input) ; i++)
+            {
+                if(strcmp2(input+i,"--str2",strlen("--str2")))
+                {
+                    flag = i;
+                    break;
+                }
+            }
+            char * str2 = first_str2(input+flag+strlen("--str2 "));
+           // printw("-%s-\n",str);
+            if(strlen(convert_input_str(str2)) != 0){
+                str2 = convert_input_str(str2);
+            }
+
+            int number = count_in_str(input,'-') - count_in_str(str,'-') - count_in_str(str2,'-')+2;
+            int at = -1 ;
+
+
+            if(number==6)
+            {
+                cursor_pos[1] = cursor_limit_x_min+find2(live_file_address,str,1);
+                replace(live_file_address,str,str2,1);
+                print_bord(live_file_address);
+                move(cursor_limit_y_min,cursor_pos[1]);
+                refresh();
+                return 1;
+            }
+            else if(number==7)
+            {
+                flag = 0;
+                for(int i=0 ;i<strlen(input) ;i++)
+                {
+                    if(input[i]=='-')
+                    {
+                        flag = i;
+                    }
+                }
+                char * attribute = nth_word(input+flag+1,1);
+
+                if(strcmp(attribute,"all")==0)
+                {
+                    cursor_pos[1] = cursor_limit_x_min+find2(live_file_address,str,find_counter(live_file_address,str));
+                    replace_all(live_file_address,str,str2);
+                    print_bord(live_file_address);
+                    move(cursor_limit_y_min,cursor_pos[1]);
+                    refresh();
+                    return 1;
+                }
+
+                else if(strcmp(attribute,"at")==0)
+                {
+                    char * at_str = nth_word(input+flag+1+3,1);
+                    at = 0;
+                    for(int i=0; i<strlen(at_str); i++)
+                    {
+                        at *=10 ;
+                        at += at_str[i]-'0';
+                    }
+                    cursor_pos[1] = cursor_limit_x_min+find2(live_file_address,str,at);
+                    replace(live_file_address,str,str2,at);
+                    print_bord(live_file_address);
+                    move(cursor_limit_y_min,cursor_pos[1]);
+                    refresh();
+                    return 1;
+                }
+                else
+                {
+                    print_bord(live_file_address);
+                    return 1;
+                }
+            }
+
+    }
     else if (command[0]==27)
     {
         return 0;
@@ -5309,7 +5593,7 @@ void move_curser(int mv)
             print_bord(live_file_address);
             if(cursor_pos[1]>cursor_limit_x_max[cursor_pos[0]])
                cursor_pos[1] =  cursor_limit_x_max[cursor_pos[0]];
-            //print_bord(live_file_address);
+            print_bord(live_file_address);
             return;
         }
 
@@ -5341,6 +5625,7 @@ void move_curser(int mv)
             }
             if(cursor_pos[1]>cursor_limit_x_max[cursor_pos[0]])
                         cursor_pos[1] =  cursor_limit_x_max[cursor_pos[0]];
+            print_bord(live_file_address);
             return;
 
         }
@@ -5373,6 +5658,7 @@ void move_curser(int mv)
 
 
     }
+    print_bord(live_file_address);
 }
 void insert_char(char * address,int line_number , int start_pos,char inserting_char)
 {
@@ -5485,6 +5771,14 @@ int char_betwewn(int xi,int yi,int xf,int yf)
         attroff(COLOR_PAIR(5));
         return sign * result;
     }
+
+}
+void strncpy2(char * s1 , char * s2, int n)
+{
+    for(int i=0 ; i<n ; i++){
+        s1[i] = s2[i];
+    }
+    s1[n] = '\0';
 
 }
 
