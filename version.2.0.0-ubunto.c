@@ -28,23 +28,6 @@ some notes for using this program
 
 */
 
-/*
-nomre :
-wildcard nazadam -50
-copy matn boland +20
-auto indent chand khati + 30
-find & replace chand khati
-file hay ezafi nadaram(undo , ...) + 5
-text comparator emtiazi +15
-arman -30
-
------phase 2---
-highlight selection +20
-phase 1 commands  -20
-navigate by word +10
-opening large file (50mg) +100 ?????
-
-*/
 
 
 void create_file(char * address);// directories exist
@@ -122,6 +105,8 @@ void copy_file_content(char * add1 ,char* add2);
 void insert_char(char * address,int line_number , int start_pos,char inserting_char);
 int char_betwewn(int xi,int yi,int xf,int yf);
 void strncpy2(char * s1 , char * s2, int n);
+void initialize_variables(char * address , char * live_address);
+int count_digit(long long a);
 
 
 
@@ -1847,7 +1832,7 @@ int main()
         //--cursor limimts ----
         cursor_limit_y_min = 1;
         cursor_limit_y_max = MAX_LINE;
-        cursor_limit_x_min = 2 + 6 ;
+        cursor_limit_x_min = 2 + 0 ;
         cursor_limit_x_max = (int *)malloc((MAX_LINE+1)*sizeof(int));
         for(int i=1 ;i<MAX_LINE+1;i++){
             cursor_limit_x_max[i] = cursor_limit_x_min;
@@ -4863,9 +4848,9 @@ char print_bord(char * address )
     raw();
     start_color();
     move(0,2);
-    init_pair(1,COLOR_YELLOW,COLOR_BLACK);
-    init_pair(2,COLOR_WHITE,COLOR_CYAN);
-    init_pair(4,COLOR_WHITE,COLOR_RED);
+    init_pair(1,51,COLOR_BLACK);
+    init_pair(2,COLOR_WHITE,97);
+    init_pair(4,COLOR_WHITE,89);
     init_pair(3,COLOR_WHITE,8); // bar line
 
     int mode = 4;
@@ -4889,10 +4874,12 @@ char print_bord(char * address )
         attroff(COLOR_PAIR(7));
         attron(COLOR_PAIR(1));
     }
+    cursor_limit_x_min = 2 + count_digit(starting_line+MAX_LINE-1);
     for(int i=starting_line ;i<=MAX_LINE+starting_line-1;i++ )
     {
         move(i-starting_line+1,0);
-        printw("%6d",i);
+
+        printw("%d",i);
     }
     for(int i=starting_line ;i<=MAX_LINE+starting_line-1;i++ )
     {
@@ -4958,7 +4945,7 @@ char print_bord(char * address )
                 printw("%c",line[k]);
             }
         }
-        cursor_limit_x_max[i] = cursor_limit_x_min + strlen(line) -1;
+        cursor_limit_x_max[i] = cursor_limit_x_min + strlen(line) ;
         if(cursor_limit_x_max[i]<cursor_limit_x_min)
         {
             cursor_limit_x_max[i] = cursor_limit_x_min;
@@ -5124,11 +5111,7 @@ char execute()
         if(check_address(address)==0){
             create_file(address);
         }
-        file_address = address;
-        isSaved = 1 ;
-        live_file_address = address;
-        starting_line = 1;
-        cursor_pos[0] = cursor_limit_y_min ; cursor_pos[1] = cursor_limit_x_min;
+        initialize_variables(address,address);
         print_bord(address);
     }
     else if(strcmp(com1,":i")==0)
@@ -5145,39 +5128,39 @@ char execute()
         ch = getchar();
         int i = 0;
         char flag_line_changed = 0;
+
+        char flag_back_space = 0;
+
         while(ch!=27)
         {
+            flag_back_space = 0;
             if(ch=='\n' || ch==13)
             {
-                insert(live_file_address,cursor_pos[0] + starting_line - cursor_limit_y_min ,cursor_pos[1]-cursor_limit_x_min ,"\n");
-                move_curser('B');
-                //flag_line_changed = 1
-                cursor_pos[1] = cursor_limit_x_min+1;
+                insert(live_file_address,cursor_pos[0] + starting_line - cursor_limit_y_min ,cursor_pos[1]-cursor_limit_x_min-1 ,"\n");
+                if(cursor_limit_y_max>cursor_pos[0]){
+                    cursor_pos[0] += 1;   cursor_pos[1] = cursor_limit_x_min;
+                }
 
             }
             else if(ch == 127)
             {
-                if(cursor_pos[1]>cursor_limit_x_min)
+                if(cursor_pos[1]>cursor_limit_x_min+1)
                 {
-                    remove_by_index(live_file_address,cursor_pos[0] + starting_line - cursor_limit_y_min  , cursor_pos[1]-cursor_limit_x_min ,1,'b');
+                    remove_by_index(live_file_address,cursor_pos[0] + starting_line - cursor_limit_y_min  , cursor_pos[1]-cursor_limit_x_min -1 ,1,'b');
                     cursor_pos[1] -= 2;
                 }
-                else{
-                    if(cursor_pos[0]>cursor_limit_y_min){
-                        remove_by_index(live_file_address,cursor_pos[0] + starting_line - cursor_limit_y_min  , cursor_pos[1]-cursor_limit_x_min ,1,'b');
-                        move_curser('A');
-                        flag_line_changed = 1;
-                        cursor_pos[1]--;
-                        if(cursor_limit_x_max[cursor_pos[0]] != cursor_limit_x_min ){
-                            cursor_pos[1] = cursor_limit_x_max[cursor_pos[0]];
-                            flag_line_changed = 0;
-                        }
-                        else{
 
-                        };
+                else if(cursor_pos[1]<=cursor_limit_x_min+1){
+                    if(cursor_pos[0]!=cursor_limit_y_min){
+                        remove_by_index(live_file_address,cursor_pos[0] + starting_line - cursor_limit_y_min  , cursor_pos[1]-cursor_limit_x_min-1 ,1,'b');
+                        if(cursor_pos[0]>cursor_limit_y_min){
+                            cursor_pos[0] --;
+                        }
+                        cursor_pos[1] = cursor_limit_x_max[cursor_pos[0]];
 
                     }
-                }
+            }
+
 
             }
             else {
@@ -5185,15 +5168,16 @@ char execute()
                     flag_line_changed=0;
                     //move_curser('A');
                 }
-                insert_char(live_file_address,cursor_pos[0] + starting_line - cursor_limit_y_min ,cursor_pos[1]-cursor_limit_x_min ,ch);
+                insert_char(live_file_address,cursor_pos[0] + starting_line - cursor_limit_y_min ,cursor_pos[1]-cursor_limit_x_min-1 ,ch);
             }
             print_bord(live_file_address);
             move(cursor_pos[0],cursor_pos[1]);
             refresh();
-            ch = getchar();
             cursor_pos[1] += 1;
+            ch = getchar();
 
         }
+        cursor_pos[1] -= 1;
         vim_status = "NORMAL";
         print_bord(live_file_address);
     }
@@ -5206,11 +5190,9 @@ char execute()
         {
             copy_file_content(file_address,live_file_address);
         }
-        isSaved = 1;
-        starting_line = 1;
-        live_file_address =  file_address;
-        cursor_pos[0] = cursor_limit_y_min ; cursor_pos[1] = cursor_limit_x_min;
+        initialize_variables(file_address,live_file_address);
         print_bord(file_address);
+        refresh();
     }
     else if(strcmp(com1,":saveas")==0)
     {
@@ -5249,11 +5231,7 @@ char execute()
             refresh();
         }
         copy_file_content(address,live_file_address);
-        isSaved = 1;
-        file_address = address;
-        live_file_address = address;
-        starting_line = 1;
-        cursor_pos[0] = cursor_limit_y_min ; cursor_pos[1] = cursor_limit_x_min;
+        initialize_variables(address,address);
         print_bord(live_file_address);
 
 
@@ -5261,18 +5239,14 @@ char execute()
     else if(strcmp(com1,"=")==0)
     {
         copy_file_content("./live/live.txt",live_file_address);
-        live_file_address = "./live/live.txt";
-        closing_pair(live_file_address);
-        isSaved = 0;
-        cursor_pos[0] = cursor_limit_y_min ; cursor_pos[1] = cursor_limit_x_min;
-        starting_line = 1;
+        closing_pair("./live/live.txt");
+        initialize_variables(file_address,"./live/live.txt");
         print_bord(live_file_address);
 
     }
     else if(strcmp(com1,":undo")==0)
     {
-        isSaved = 1;
-        live_file_address = file_address;
+        initialize_variables(file_address,file_address);
         print_bord(live_file_address);
     }
     else if(strcmp(com1,":v")==0) // dobar yy ya dd ro bezan
@@ -5828,5 +5802,23 @@ void strncpy2(char * s1 , char * s2, int n)
     }
     s1[n] = '\0';
 
+}
+void initialize_variables(char * address , char * live_address){
+    file_address = address;
+    isSaved = 1 ;
+    live_file_address = live_address;
+    starting_line = 1;
+    cursor_pos[0] = cursor_limit_y_min ; cursor_pos[1] = cursor_limit_x_min + count_digit(starting_line+MAX_LINE-1);
+
+    isFind = 0;
+    find_n = -1;
+}
+int count_digit(long long a){
+    int result = 0;
+    while(a>0){
+        a /= 10;
+        result++;
+    }
+    return result;
 }
 

@@ -165,6 +165,14 @@ void master()
             temp[flag] = '\0';
             //printf("%s \n",temp);
             create_folder(temp);
+            FILE * file22;
+            if((file22=(fopen(address,"r")))!=0)
+            {
+                fclose(file22);
+                printf("file exists\n");
+                continue;
+            }
+            fclose(file22);
             create_file(address);
             //printf("%s\n",address);
             printf("done\n");

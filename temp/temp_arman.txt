@@ -1,0 +1,18 @@
+|__dir1
+|__e.txt
+|__fil e.txt
+|__file1.txt
+|__javab.txt
+|__k.txt
+|__Phase1 (3).pdf
+|__r
+|__t.txt
+|__t.txt 
+|__t3.txt
+|__ta jhk.txt
+|__temp
+|__test.test.txt
+|__test.txt
+|__test_closing_pairs.txt
+|__tt.txt
+|__ttt.txt
